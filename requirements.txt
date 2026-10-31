@@ -1,0 +1,17 @@
+# Núcleo
+PySide6>=6.7          # Interfaz (Qt6, licencia LGPL)
+qasync>=0.27          # Une el bucle asyncio con el de Qt
+httpx[http2]>=0.27    # Cliente HTTP asíncrono (APIs + descargas)
+selectolax>=1.0       # Parser HTML muy rápido (motor lexbor)
+feedparser>=6.0       # RSS (ModDB expone listas de archivos por RSS)
+platformdirs>=4.2     # Rutas estándar de Windows (%APPDATA%, etc.)
+keyring>=25.0         # Guarda las API keys en el Administrador de credenciales de Windows
+websockets>=12.0      # Inicio de sesión SSO de Nexus Mods
+py7zr>=0.21 ; python_version < "3.15"   # Plan B para .7z sin 7-Zip (aún sin versión para Python 3.15)
+pywin32>=306 ; sys_platform == "win32"   # Registro de Windows, enlaces, protocolo
+
+# Descompresión: se empaqueta 7z.exe (7-Zip CLI) junto a la app -> zip/rar/7z con una sola herramienta.
+
+# Desarrollo
+pytest>=8
+pytest-asyncio>=0.23
