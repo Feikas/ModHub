@@ -9,3 +9,7 @@ GameBanana, Steam Workshop, Mod DB y AyakaMods desde una sola aplicación.
 
 Estructura: `modhub/sources` (webs), `modhub/core` (descargas, extracción, despliegue, FOMOD),
 `modhub/games` (perfiles de juegos), `modhub/ui` (interfaz PySide6), `modhub/main.py` (arranque).
+
+## Licencia
+
+MIT: gratis y libre. Cualquiera puede usarlo, copiarlo, modificarlo y redistribuirlo (ver `LICENSE`).
