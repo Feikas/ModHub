@@ -1,7 +1,14 @@
 # ModHub — Gestor universal de mods para Windows
 
 Busca, descarga e instala mods de Nexus Mods, Thunderstore, Modrinth, CurseForge, mod.io,
-GameBanana, Steam Workshop, Mod DB y AyakaMods desde una sola aplicación.
+GameBanana, Mod DB y AyakaMods desde una sola aplicación.
+
+## Descargar
+
+En **[Releases](https://github.com/Feikas/ModHub/releases/latest)**: `ModHub-Setup.exe` (instalador) o
+`ModHub-Portable.zip` (sin instalar). No hace falta Python.
+
+## Desarrollo
 
 - **Empezar:** lee `GUIA_WINDOWS.md` (instalar.bat → demo.bat → ejecutar.bat).
 - **Arquitectura:** `ARQUITECTURA.md`.
