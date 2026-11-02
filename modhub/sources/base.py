@@ -19,6 +19,8 @@ from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import TYPE_CHECKING, Any
 
+from .platforms import is_compatible, platforms_in
+
 if TYPE_CHECKING:
     from .http import HttpClient
 
@@ -105,6 +107,8 @@ class ModFile:
     loaders: list[str] = field(default_factory=list)          # fabric, forge, bepinex…
     dependencies: list[Dependency] = field(default_factory=list)
     extra: dict[str, Any] = field(default_factory=dict)       # datos propios de la fuente
+    platforms: frozenset[str] = frozenset()        # versión del juego para la que es (vacío = todas)
+    excluded_platforms: frozenset[str] = frozenset()
 
 
 @dataclass(slots=True)
@@ -129,6 +133,8 @@ class ModInfo:
     categories: list[str] = field(default_factory=list)       # categorías normalizadas (ver CATEGORIES)
     raw_categories: list[str] = field(default_factory=list)   # tal cual las da la web
     install_support: DownloadPolicy | None = None   # cómo se instalaría (estimado sin pedir el ticket)
+    platforms: frozenset[str] = frozenset()         # «Steam», «Xbox / Game Pass»… según su texto (vacío = todas)
+    excluded_platforms: frozenset[str] = frozenset()  # versiones que el autor dice que NO valen
 
     @property
     def uid(self) -> str:
@@ -345,6 +351,7 @@ class SearchFilterOptions:
     game_version: str | None = None               # p. ej. "1.21.1" (lo usan Modrinth y CurseForge)
     categories: frozenset[str] = frozenset()      # claves de CATEGORIES; vacío = todas
     sort: SortOrder = SortOrder.RELEVANCE          # «Ordenar por» (Recomendado)
+    platform: str | None = None                   # versión del juego elegido (xbox, steam…): oculta lo de otras
 
     def effective_sort(self, query: str) -> SortOrder:
         """Sin texto, «Relevancia» no significa nada: se muestran los populares del momento."""
@@ -370,6 +377,8 @@ class SearchFilterOptions:
             if updated is None or updated < limit:
                 return False
         if self.categories and not (set(mod.categories) & self.categories):
+            return False
+        if self.platform and not is_compatible(mod.platforms, mod.excluded_platforms, self.platform):
             return False
         return True
 
@@ -488,6 +497,8 @@ class SourceAdapter(abc.ABC):
             mod.categories = classify_categories(mod.raw_categories)
         if mod.is_adult is None and self.adult_support is AdultSupport.NEVER:
             mod.is_adult = False
+        if not mod.platforms and not mod.excluded_platforms:
+            mod.platforms, mod.excluded_platforms = platforms_in(mod.name, mod.summary)
         return mod
 
     @property
@@ -502,6 +513,12 @@ class SourceAdapter(abc.ABC):
         if hit and time.monotonic() - hit[0] < self.details_ttl:
             return hit[1]
         info = await self._fetch_mod_details(mod_id, game_ref)
+        for f in info.files:                   # ¿para qué versión del juego es cada archivo?
+            if not f.platforms and not f.excluded_platforms:
+                f.platforms, f.excluded_platforms = platforms_in(
+                    f.name, f.filename, str(f.extra.get("description") or ""), str(f.extra.get("category") or ""))
+        if not info.platforms and not info.excluded_platforms:
+            info.platforms, info.excluded_platforms = platforms_in(info.name, info.summary)
         self._details_cache[cache_key] = (time.monotonic(), info)
         return info
 

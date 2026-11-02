@@ -28,10 +28,12 @@ def ue4ss(project: str) -> ModLoader:
 
 
 SKSE64 = ModLoader(key="skse", name="SKSE64", detect=("skse64_loader.exe",), launcher="skse64_loader.exe",
-                   homepage="https://skse.silverlock.org", note="Script Extender de Skyrim SE/AE.")
+                   homepage="https://skse.silverlock.org", note="Script Extender de Skyrim SE/AE.",
+                   unsupported=("xbox", "epic"))      # solo Steam y GOG (según su autor)
 
 F4SE = ModLoader(key="f4se", name="F4SE", detect=("f4se_loader.exe",), launcher="f4se_loader.exe",
-                 homepage="https://f4se.silverlock.org", note="Script Extender de Fallout 4.")
+                 homepage="https://f4se.silverlock.org", note="Script Extender de Fallout 4.",
+                 unsupported=("xbox",))               # no existe para la versión de Microsoft Store / Game Pass
 
 SMAPI = ModLoader(key="smapi", name="SMAPI", detect=("StardewModdingAPI.exe", "StardewModdingAPI.dll"),
                   launcher="StardewModdingAPI.exe",

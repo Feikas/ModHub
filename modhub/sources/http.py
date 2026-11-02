@@ -23,7 +23,7 @@ import httpx
 log = logging.getLogger("modhub.http")
 
 APP_NAME = "ModHub"
-APP_VERSION = "0.5.0"
+APP_VERSION = "0.6.0"
 USER_AGENT = f"{APP_NAME}/{APP_VERSION} (Windows mod manager; contacto: https://github.com/tu-usuario/modhub)"
 
 

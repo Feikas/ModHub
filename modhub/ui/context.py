@@ -103,6 +103,20 @@ class AppContext:
     def game(self, game_id: int):
         return self.db.one("SELECT * FROM games WHERE id=?", (game_id,))
 
+    def game_platform(self, game_id: int | None) -> str | None:
+        """Versión del juego instalado: steam | xbox | epic | gog, o None si no se sabe (carpeta propia)."""
+        from ..core.platform_paths import PathAdapter
+        from ..sources.platforms import STORE_TO_PLATFORM
+        game = self.game(game_id) if game_id is not None else None
+        if game is None:
+            return None
+        if game["store"] in STORE_TO_PLATFORM:
+            return STORE_TO_PLATFORM[game["store"]]
+        path = (game["install_path"] or "").replace("\\", "/").lower()
+        if "/xboxgames/" in path or "/windowsapps/" in path or PathAdapter(game["install_path"]).is_gdk:
+            return "xbox"                                  # portable/manual, pero es la versión de Game Pass
+        return None
+
     def game_ref(self, game_id: int) -> GameRef:
         return self.installer.game_ref(game_id)
 

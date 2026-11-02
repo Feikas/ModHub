@@ -15,6 +15,8 @@ from dataclasses import replace
 
 from ..sources import CATEGORIES, SORT_LABELS, AdultFilter, ModInfo, SearchFilterOptions, SortOrder
 from ..sources.base import parse_date
+from ..sources.platforms import PLATFORM_NAMES, PLATFORMS, is_compatible, pick_file
+from ..sources.platforms import label as platform_label
 from .context import POLICY_LABELS
 from .game_picker import GamePicker
 from ..sources import GameRef
@@ -32,6 +34,10 @@ CATEGORY_SHORT = {"ui": "Interfaz", "cosmetic": "Skins", "gameplay": "Jugabilida
 
 UPDATED_OPTIONS = [("Cualquier fecha", None), ("Último mes", 30), ("Últimos 3 meses", 90),
                    ("Últimos 6 meses", 180), ("Último año", 365)]
+
+
+PLATFORM_CHOICES = [("Automática (la de tu juego)", "auto"), ("Todas las versiones", None),
+                    *[(PLATFORM_NAMES[p], p) for p in PLATFORMS]]
 
 
 class FilterPanel(QFrame):
@@ -84,6 +90,15 @@ class FilterPanel(QFrame):
         self.game_version.setPlaceholderText("p. ej. 1.21.1 (Modrinth/CurseForge)")
         row2.addWidget(self.game_version, 1)
         grid.addLayout(row2, 3, 1)
+        row3 = QHBoxLayout()
+        row3.addWidget(QLabel("Mi versión:"))
+        self.platform = QComboBox()
+        self.platform.setToolTip("Oculta los mods que el autor marca solo para otra versión del juego "
+                                 "(p. ej. «Steam only» si tienes la de Xbox / Game Pass).")
+        for text, value in PLATFORM_CHOICES:
+            self.platform.addItem(text, value)
+        row3.addWidget(self.platform, 1)
+        grid.addLayout(row3, 4, 1)
 
         t3 = QLabel("Categorías")
         t3.setObjectName("SectionTitle")
@@ -108,6 +123,7 @@ class FilterPanel(QFrame):
         self.auto_only.toggled.connect(self._emit)
         self.updated.currentIndexChanged.connect(self._emit)
         self.game_version.editingFinished.connect(self._emit)
+        self.platform.currentIndexChanged.connect(self._emit)
         for cb in self.cat_boxes.values():
             cb.toggled.connect(self._emit)
 
@@ -136,7 +152,12 @@ class FilterPanel(QFrame):
 
     def reset(self) -> None:
         self.set_options(SearchFilterOptions())
+        self.platform.setCurrentIndex(0)
         self.changed.emit()
+
+    def platform_choice(self) -> str | None:
+        """'auto' (según el juego elegido), None (todas) o una plataforma concreta."""
+        return self.platform.currentData()
 
     def summary(self) -> str:
         o = self.options()
@@ -153,6 +174,8 @@ class FilterPanel(QFrame):
             bits.append(f"v{o.game_version}")
         if o.categories:
             bits.append(f"{len(o.categories)} categorías")
+        if self.platform_choice() not in ("auto", None):
+            bits.append(f"solo {PLATFORM_NAMES[self.platform_choice()]}")
         return ", ".join(bits)
 
 
@@ -363,6 +386,10 @@ class SearchView(QWidget):
             return GameRef(name=ref.name, ids=dict(self._catalog_links[ref.name]))
         return ref
 
+    def _platform(self, gid: int | None) -> str | None:
+        choice = self.filters.platform_choice()
+        return self.ctx.game_platform(gid) if choice == "auto" else choice
+
     def search(self) -> None:
         if not self.query.text().strip() and not self._has_game():
             self.status.setText("Escribe qué buscas, o elige un juego para ver todos sus mods.")
@@ -383,7 +410,8 @@ class SearchView(QWidget):
         query = self.query.text().strip()
         gid = self.game.current_game_id()
         virtual = self.game.current_ref() if self.game.is_virtual else None
-        filters = replace(self.filters.options(), sort=SortOrder(self.sort.currentData()))
+        filters = replace(self.filters.options(), sort=SortOrder(self.sort.currentData()),
+                          platform=self._platform(gid))
         self.ctx.settings.search_filters = filters.to_dict()
         self.search_btn.setEnabled(False)
         order = SORT_LABELS[filters.effective_sort(query)].lower()
@@ -454,6 +482,10 @@ class SearchView(QWidget):
             if mod.is_adult:
                 name.setText(f"🔞 {mod.name}")
                 name.setForeground(Qt.GlobalColor.magenta)
+            if mod.platforms or mod.excluded_platforms:
+                tag = platform_label(mod.platforms) or ("no " + platform_label(mod.excluded_platforms))
+                name.setText(f"{name.text()}   [{tag}]")
+                name.setToolTip(f"{mod.summary}\n\nVersión del juego: {tag}".strip())
             if (pix := self.ctx.images.cached(mod.thumbnail)) is not None:
                 name.setIcon(QIcon(pix))
             self.table.setItem(r, 0, name)
@@ -605,11 +637,19 @@ class SearchView(QWidget):
         gallery = list(dict.fromkeys([*info.images, *mod.images, *([mod.thumbnail] if mod.thumbnail else [])]))
         if gallery != getattr(self, "_gallery_urls", None):
             self._show_gallery(mod, gallery)
+        plat = self._platform(self.game.current_game_id())
+        best = pick_file(info.files, plat)
         for f in info.files:
             date = parse_date(f.uploaded_at)
             text = f"{f.name or f.filename}  {('v' + f.version) if f.version and f.version not in f.name else ''}"
             text += f"  ·  {human_size(f.size)}" + (f"  ·  {date:%d/%m/%Y}" if date else "")
+            if f.platforms:
+                text += f"  ·  [{platform_label(f.platforms)}]"
+            if plat and not is_compatible(f.platforms, f.excluded_platforms, plat):
+                text = "⚠ " + text + "  (otra versión del juego)"
             self.d_files.addItem(text.strip(), f.file_id)
+        if best is not None:
+            self.d_files.setCurrentIndex(max(0, self.d_files.findData(best.file_id)))
         installed = self.game.current_game_id() is not None
         self.install_btn.setEnabled(bool(info.files) and installed)
         self._install_hint(has_files=bool(info.files))

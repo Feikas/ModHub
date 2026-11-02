@@ -1,0 +1,1546 @@
+{
+  "schema_version": 1,
+  "fecha_investigacion": "2026-11-02",
+  "idioma": "es",
+  "alcance": "Referencia de investigación para Windows PC. No es un catálogo vivo de suscripción Game Pass ni autoriza despliegue automático.",
+  "convenciones": {
+    "rutas": "Separadores /; carpetas_tipicas_xboxgames relativas a la biblioteca XboxGames. Ejecutables/binarios relativos a la raíz real del juego, normalmente Content. '.' significa esa raíz.",
+    "null": "No confirmado; no buscar un nombre inventado ni instalar por inferencia.",
+    "verificar": "true significa candidato, inferencia, soporte por mod o dato pendiente de validar; false indica respaldo explícito de la afirmación concreta, no prueba local. El verificar de cada juego es conservador por existir incertidumbre en alguna parte de la ficha.",
+    "fuentes": "IDs del diccionario fuentes; cada fuente indica exactamente qué respalda. No respalda automáticamente todos los campos de la ficha.",
+    "carpetas": "No fijar unidad C:. Preferir manifiesto/registro/detección y comprobar ejecutables. XboxGames/Content no cubre todas las instalaciones UWP/WindowsApps, idiomas ni instalaciones movidas.",
+    "compatibilidad": "compatible, incompatible y desconocida son estados distintos. No hay declaración de compatibilidad universal para un juego entero.",
+    "catalogo": "Se estudian ediciones PC Microsoft Store/Game Pass históricas o documentadas. No se ha certificado permanencia actual en Game Pass ni disponibilidad regional."
+  },
+  "juegos": [
+    {
+      "id": "starfield",
+      "nombre": "Starfield",
+      "verificar": true,
+      "carpetas_tipicas_xboxgames": {
+        "valor": [
+          "Starfield/Content"
+        ],
+        "verificar": false,
+        "fuentes": [
+          "starfield",
+          "sfse"
+        ]
+      },
+      "ejecutable_xbox": {
+        "valor": [
+          "Starfield.exe"
+        ],
+        "verificar": false,
+        "fuentes": [
+          "starfield",
+          "sfse"
+        ]
+      },
+      "ejecutable_steam": {
+        "valor": [
+          "Starfield.exe"
+        ],
+        "verificar": false,
+        "fuentes": [
+          "starfield",
+          "sfse"
+        ]
+      },
+      "carpeta_binarios_xbox": {
+        "valor": [
+          "."
+        ],
+        "verificar": false,
+        "fuentes": [
+          "starfield",
+          "sfse"
+        ]
+      },
+      "compatibilidad_entre_versiones": {
+        "estado": "parcial",
+        "detalle": "Mods de datos pueden ser compatibles si coinciden runtime, requisitos y formato; los que requieren SFSE no lo son con Xbox PC.",
+        "verificar": true,
+        "fuentes": [
+          "starfield",
+          "sfse"
+        ]
+      },
+      "modloader_xbox": {
+        "nombre": "SFSE",
+        "distinto_en_xbox": true,
+        "soporte_xbox": "no_soportado",
+        "verificar": false,
+        "fuentes": [
+          "sfse"
+        ],
+        "detalle": "No instalar SFSE ni sus plugins para Steam en Game Pass."
+      },
+      "notas": [
+        "Raíz relativa al volumen/biblioteca XboxGames; el ejecutable y Data están en Content.",
+        "No aplicar Win64→WinGDK: no es un juego Unreal.",
+        "La raíz de datos de mods puede diferir de la del binario según el tipo de mod; no generalizar."
+      ],
+      "fuentes": [
+        "starfield",
+        "sfse"
+      ]
+    },
+    {
+      "id": "palworld",
+      "nombre": "Palworld",
+      "verificar": true,
+      "carpetas_tipicas_xboxgames": {
+        "valor": [
+          "Palworld/Content"
+        ],
+        "verificar": false,
+        "fuentes": [
+          "palworld",
+          "palworld_loader",
+          "palworld_nexus"
+        ]
+      },
+      "ejecutable_xbox": {
+        "valor": [
+          "Pal/Binaries/WinGDK/Palworld-WinGDK-Shipping.exe"
+        ],
+        "verificar": false,
+        "fuentes": [
+          "palworld",
+          "palworld_loader",
+          "palworld_nexus"
+        ]
+      },
+      "ejecutable_steam": {
+        "valor": [
+          "Pal/Binaries/Win64/Palworld-Win64-Shipping.exe"
+        ],
+        "verificar": true,
+        "fuentes": [
+          "palworld",
+          "palworld_loader",
+          "palworld_nexus"
+        ]
+      },
+      "carpeta_binarios_xbox": {
+        "valor": [
+          "Pal/Binaries/WinGDK"
+        ],
+        "verificar": false,
+        "fuentes": [
+          "palworld",
+          "palworld_loader",
+          "palworld_nexus"
+        ]
+      },
+      "compatibilidad_entre_versiones": {
+        "estado": "parcial",
+        "detalle": "UE4SS se instala en ambas ediciones con configuración adecuada; compatibilidad de cada Lua, DLL o pak depende de build y requisitos.",
+        "verificar": true,
+        "fuentes": [
+          "palworld",
+          "palworld_loader",
+          "palworld_nexus"
+        ]
+      },
+      "modloader_xbox": {
+        "nombre": "UE4SS (fork/configuración Palworld)",
+        "distinto_en_xbox": "ruta_y_posible_configuracion",
+        "soporte_xbox": "documentado",
+        "verificar": false,
+        "detalle": "La guía contempla Game Pass; no asumir que upstream o cualquier plugin C++ funciona sin la configuración del juego.",
+        "fuentes": [
+          "palworld",
+          "palworld_loader",
+          "palworld_nexus"
+        ]
+      },
+      "notas": [
+        "Separar ejecutable bootstrap de raíz del proceso Shipping.",
+        "No renombrar ejecutables ni DLL del paquete; seleccionar la versión y ruta correctas.",
+        "PAK y LogicMods tienen destinos diferentes de las carpetas de binarios."
+      ],
+      "fuentes": [
+        "palworld",
+        "palworld_loader",
+        "palworld_nexus"
+      ]
+    },
+    {
+      "id": "hogwartslegacy",
+      "nombre": "Hogwarts Legacy",
+      "verificar": true,
+      "carpetas_tipicas_xboxgames": {
+        "valor": [
+          "Hogwarts Legacy/Content"
+        ],
+        "verificar": true,
+        "fuentes": [
+          "hogwarts",
+          "hogwarts_gp",
+          "hogwarts_mp"
+        ]
+      },
+      "ejecutable_xbox": {
+        "valor": null,
+        "verificar": true,
+        "fuentes": [
+          "hogwarts",
+          "hogwarts_gp",
+          "hogwarts_mp"
+        ]
+      },
+      "ejecutable_steam": {
+        "valor": [
+          "Phoenix/Binaries/Win64/HogwartsLegacy.exe"
+        ],
+        "verificar": true,
+        "fuentes": [
+          "hogwarts",
+          "hogwarts_gp",
+          "hogwarts_mp"
+        ]
+      },
+      "carpeta_binarios_xbox": {
+        "valor": null,
+        "verificar": true,
+        "fuentes": [
+          "hogwarts",
+          "hogwarts_gp",
+          "hogwarts_mp"
+        ]
+      },
+      "compatibilidad_entre_versiones": {
+        "estado": "desconocida",
+        "detalle": "Existe edición PC Game Pass. No he confirmado en fuente primaria el layout Xbox ni compatibilidad general de paks/loaders; Hogwarts MP declara soporte Game Pass experimental.",
+        "verificar": true,
+        "fuentes": [
+          "hogwarts",
+          "hogwarts_gp",
+          "hogwarts_mp"
+        ]
+      },
+      "modloader_xbox": {
+        "nombre": "UE4SS / loaders específicos / sistema oficial",
+        "distinto_en_xbox": "desconocido",
+        "soporte_xbox": "verificar_por_loader",
+        "verificar": true,
+        "detalle": "No inferir soporte Xbox a partir de una guía Steam/Epic ni del soporte experimental de un mod.",
+        "fuentes": [
+          "hogwarts",
+          "hogwarts_gp",
+          "hogwarts_mp"
+        ]
+      },
+      "notas": [
+        "No inventar Phoenix/Binaries/WinGDK como ruta confirmada: leer manifiesto y comprobar archivos.",
+        "Carpeta y ejecutable Steam son candidatos pendientes de comprobación en la instalación.",
+        "La existencia de edición PC Game Pass no certifica todos los mods Nexus."
+      ],
+      "fuentes": [
+        "hogwarts",
+        "hogwarts_gp",
+        "hogwarts_mp"
+      ]
+    },
+    {
+      "id": "fallout4",
+      "nombre": "Fallout 4",
+      "verificar": true,
+      "carpetas_tipicas_xboxgames": {
+        "valor": [
+          "Fallout 4 (PC)/Content",
+          "Fallout 4/Content"
+        ],
+        "verificar": true,
+        "fuentes": [
+          "f4se"
+        ]
+      },
+      "ejecutable_xbox": {
+        "valor": [
+          "Fallout4.exe"
+        ],
+        "verificar": true,
+        "fuentes": [
+          "f4se"
+        ]
+      },
+      "ejecutable_steam": {
+        "valor": [
+          "Fallout4.exe"
+        ],
+        "verificar": true,
+        "fuentes": [
+          "f4se"
+        ]
+      },
+      "carpeta_binarios_xbox": {
+        "valor": [
+          "."
+        ],
+        "verificar": true,
+        "fuentes": [
+          "f4se"
+        ]
+      },
+      "compatibilidad_entre_versiones": {
+        "estado": "parcial",
+        "detalle": "No equiparar mods de datos con plugins nativos. F4SE no soporta Windows Store; también hay incompatibilidades entre runtimes Steam/GOG.",
+        "verificar": true,
+        "fuentes": [
+          "f4se"
+        ]
+      },
+      "modloader_xbox": {
+        "nombre": "F4SE",
+        "distinto_en_xbox": true,
+        "soporte_xbox": "no_soportado",
+        "verificar": false,
+        "fuentes": [
+          "f4se"
+        ],
+        "detalle": "Elegir build Steam/GOG por runtime; no ofrecer F4SE como solución Xbox."
+      },
+      "notas": [
+        "Las carpetas Xbox y nombres de ejecutable son candidatos; confirmar variante de idioma/edición.",
+        "No tratar Next Gen, Anniversary o versión anterior como simples sinónimos de tienda.",
+        "Data y posibles rutas localizadas deben descubrirse en disco."
+      ],
+      "fuentes": [
+        "f4se"
+      ]
+    },
+    {
+      "id": "skyrimse",
+      "nombre": "The Elder Scrolls V: Skyrim Special Edition",
+      "verificar": true,
+      "carpetas_tipicas_xboxgames": {
+        "valor": [
+          "Skyrim Special Edition (PC)/Content",
+          "Skyrim Special Edition/Content"
+        ],
+        "verificar": true,
+        "fuentes": [
+          "skse"
+        ]
+      },
+      "ejecutable_xbox": {
+        "valor": [
+          "SkyrimSE.exe"
+        ],
+        "verificar": true,
+        "fuentes": [
+          "skse"
+        ]
+      },
+      "ejecutable_steam": {
+        "valor": [
+          "SkyrimSE.exe"
+        ],
+        "verificar": true,
+        "fuentes": [
+          "skse"
+        ]
+      },
+      "carpeta_binarios_xbox": {
+        "valor": [
+          "."
+        ],
+        "verificar": true,
+        "fuentes": [
+          "skse"
+        ]
+      },
+      "compatibilidad_entre_versiones": {
+        "estado": "parcial",
+        "detalle": "SKSE64 es compatible con Steam/GOG usando builds apropiadas, no Windows Store/Game Pass ni EGS. Mods sin SKSE requieren revisar runtime, DLC y dependencias.",
+        "verificar": false,
+        "fuentes": [
+          "skse"
+        ]
+      },
+      "modloader_xbox": {
+        "nombre": "SKSE64",
+        "distinto_en_xbox": true,
+        "soporte_xbox": "no_soportado",
+        "verificar": false,
+        "detalle": "AE/SE describe familias de runtime; incluso sin comprar el DLC Anniversary puede requerirse la build AE.",
+        "fuentes": [
+          "skse"
+        ]
+      },
+      "notas": [
+        "Rutas Xbox candidatas; algunas ediciones Bethesda tienen subcarpetas por idioma.",
+        "Steam y GOG no siempre comparten plugins DLL.",
+        "No confundir Skyrim clásico, SE, AE y VR."
+      ],
+      "fuentes": [
+        "skse"
+      ]
+    },
+    {
+      "id": "stardewvalley",
+      "nombre": "Stardew Valley",
+      "verificar": true,
+      "carpetas_tipicas_xboxgames": {
+        "valor": [
+          "Stardew Valley/Content"
+        ],
+        "verificar": true,
+        "fuentes": [
+          "smapi",
+          "smapi_app"
+        ]
+      },
+      "ejecutable_xbox": {
+        "valor": [
+          "Stardew Valley.exe"
+        ],
+        "verificar": false,
+        "fuentes": [
+          "smapi",
+          "smapi_app"
+        ]
+      },
+      "ejecutable_steam": {
+        "valor": [
+          "Stardew Valley.exe"
+        ],
+        "verificar": true,
+        "fuentes": [
+          "smapi",
+          "smapi_app"
+        ]
+      },
+      "carpeta_binarios_xbox": {
+        "valor": [
+          "."
+        ],
+        "verificar": true,
+        "fuentes": [
+          "smapi",
+          "smapi_app"
+        ]
+      },
+      "compatibilidad_entre_versiones": {
+        "estado": "parcial",
+        "detalle": "SMAPI contempla Xbox app; para cada mod exigir versión compatible de juego/SMAPI y dependencias. No prometer compatibilidad universal por extensión .dll.",
+        "verificar": true,
+        "fuentes": [
+          "smapi",
+          "smapi_app"
+        ]
+      },
+      "modloader_xbox": {
+        "nombre": "SMAPI",
+        "distinto_en_xbox": "lanzamiento",
+        "soporte_xbox": "documentado",
+        "verificar": false,
+        "detalle": "La instalación Xbox necesita pasos de lanzamiento específicos; seguir instrucciones actuales del instalador, sin renombrar automáticamente archivos desde una regla genérica.",
+        "fuentes": [
+          "smapi",
+          "smapi_app"
+        ]
+      },
+      "notas": [
+        "El ejecutable SMAPI es StardewModdingAPI.exe.",
+        "Los mods normalmente van en Mods dentro de la raíz real del juego.",
+        "Carpeta XboxGames es una pista, no un identificador estable."
+      ],
+      "fuentes": [
+        "smapi",
+        "smapi_app"
+      ]
+    },
+    {
+      "id": "hades",
+      "nombre": "Hades",
+      "verificar": true,
+      "carpetas_tipicas_xboxgames": {
+        "valor": [
+          "Hades/Content"
+        ],
+        "verificar": true,
+        "fuentes": [
+          "hades",
+          "hades_importer"
+        ]
+      },
+      "ejecutable_xbox": {
+        "valor": [
+          "Hades.exe"
+        ],
+        "verificar": false,
+        "fuentes": [
+          "hades",
+          "hades_importer"
+        ]
+      },
+      "ejecutable_steam": {
+        "valor": [
+          "x64/Hades.exe",
+          "x64Vk/Hades.exe",
+          "x86/Hades.exe"
+        ],
+        "verificar": true,
+        "fuentes": [
+          "hades",
+          "hades_importer"
+        ]
+      },
+      "carpeta_binarios_xbox": {
+        "valor": [
+          "."
+        ],
+        "verificar": false,
+        "fuentes": [
+          "hades",
+          "hades_importer"
+        ]
+      },
+      "compatibilidad_entre_versiones": {
+        "estado": "parcial",
+        "detalle": "Mod Importer y Hephaistos documentan Microsoft Store; comprobar cada mod y versión. Diferencias de layout, no una regla Unreal.",
+        "verificar": true,
+        "fuentes": [
+          "hades",
+          "hades_importer"
+        ]
+      },
+      "modloader_xbox": {
+        "nombre": "Mod Importer",
+        "distinto_en_xbox": "ruta_de_contenido",
+        "soporte_xbox": "documentado",
+        "verificar": false,
+        "detalle": "Microsoft Store: Hades/Content/Content para contenido de mods; desde raíz Content detectada, el destino relativo vuelve a ser Content.",
+        "fuentes": [
+          "hades",
+          "hades_importer"
+        ]
+      },
+      "notas": [
+        "Hephaistos muestra Hades/Content/Hades.exe para Microsoft Store.",
+        "No eliminar automáticamente una doble carpeta Content/Content: aquí puede ser correcta.",
+        "Los tres ejecutables Steam son candidatos; confirmar arquitectura y renderer."
+      ],
+      "fuentes": [
+        "hades",
+        "hades_importer"
+      ]
+    },
+    {
+      "id": "grounded",
+      "nombre": "Grounded",
+      "verificar": true,
+      "carpetas_tipicas_xboxgames": {
+        "valor": [
+          "Grounded/Content"
+        ],
+        "verificar": true,
+        "fuentes": [
+          "grounded"
+        ]
+      },
+      "ejecutable_xbox": {
+        "valor": [
+          "Maine/Binaries/WinGDK/Maine-WinGDK-Shipping.exe"
+        ],
+        "verificar": true,
+        "fuentes": [
+          "grounded"
+        ]
+      },
+      "ejecutable_steam": {
+        "valor": [
+          "Maine/Binaries/Win64/Maine-Win64-Shipping.exe"
+        ],
+        "verificar": false,
+        "fuentes": [
+          "grounded"
+        ]
+      },
+      "carpeta_binarios_xbox": {
+        "valor": [
+          "Maine/Binaries/WinGDK"
+        ],
+        "verificar": true,
+        "fuentes": [
+          "grounded"
+        ]
+      },
+      "compatibilidad_entre_versiones": {
+        "estado": "desconocida",
+        "detalle": "La documentación del autor da Win64 para Steam, pero avisa expresamente que sus instrucciones Xbox no están verificadas.",
+        "verificar": true,
+        "fuentes": [
+          "grounded"
+        ]
+      },
+      "modloader_xbox": {
+        "nombre": "UE4SS con configuración Grounded",
+        "distinto_en_xbox": "posible_ruta_y_configuracion",
+        "soporte_xbox": "no_confirmado",
+        "verificar": true,
+        "detalle": "No activar adaptación automática por esta ficha; confirmar juego/build, firmas y ruta de carga de paks.",
+        "fuentes": [
+          "grounded"
+        ]
+      },
+      "notas": [
+        "Ruta Xbox y ejecutable candidatos, no hechos comprobados.",
+        "Algunas instrucciones de mods usan carpetas de datos del usuario; no asumir instalación dentro de Binaries."
+      ],
+      "fuentes": [
+        "grounded"
+      ]
+    },
+    {
+      "id": "seaofthieves",
+      "nombre": "Sea of Thieves",
+      "verificar": true,
+      "carpetas_tipicas_xboxgames": {
+        "valor": [
+          "Sea of Thieves/Content"
+        ],
+        "verificar": true,
+        "fuentes": [
+          "sot"
+        ]
+      },
+      "ejecutable_xbox": {
+        "valor": null,
+        "verificar": true,
+        "fuentes": [
+          "sot"
+        ]
+      },
+      "ejecutable_steam": {
+        "valor": null,
+        "verificar": true,
+        "fuentes": [
+          "sot"
+        ]
+      },
+      "carpeta_binarios_xbox": {
+        "valor": null,
+        "verificar": true,
+        "fuentes": [
+          "sot"
+        ]
+      },
+      "compatibilidad_entre_versiones": {
+        "estado": "no_soportada_por_politica_del_juego",
+        "detalle": "El editor prohíbe alterar o añadir archivos para modificar la experiencia; no ofrecer despliegue genérico de mods.",
+        "verificar": false,
+        "fuentes": [
+          "sot"
+        ]
+      },
+      "modloader_xbox": {
+        "nombre": null,
+        "distinto_en_xbox": null,
+        "soporte_xbox": "no_ofrecer_despliegue",
+        "verificar": false,
+        "detalle": "No recomendar un loader ni deducir que una ruta encontrada implica soporte de mods.",
+        "fuentes": [
+          "sot"
+        ]
+      },
+      "notas": [
+        "Se incluye para responder al listado solicitado, no como juego con modding autorizado.",
+        "La política oficial también considera sancionable ReShade.",
+        "Nombres y layout no comprobados; usar null antes que inventar ejecutables."
+      ],
+      "fuentes": [
+        "sot"
+      ]
+    },
+    {
+      "id": "liesofp",
+      "nombre": "Lies of P",
+      "verificar": true,
+      "carpetas_tipicas_xboxgames": {
+        "valor": [
+          "Lies of P/Content"
+        ],
+        "verificar": true,
+        "fuentes": [
+          "lies",
+          "lies_exe"
+        ]
+      },
+      "ejecutable_xbox": {
+        "valor": [
+          "LiesofP/Binaries/WinGDK/LOP-WinGDK-Shipping.exe"
+        ],
+        "verificar": false,
+        "fuentes": [
+          "lies",
+          "lies_exe"
+        ]
+      },
+      "ejecutable_steam": {
+        "valor": [
+          "LiesofP/Binaries/Win64/LOP-Win64-Shipping.exe"
+        ],
+        "verificar": true,
+        "fuentes": [
+          "lies",
+          "lies_exe"
+        ]
+      },
+      "carpeta_binarios_xbox": {
+        "valor": [
+          "LiesofP/Binaries/WinGDK"
+        ],
+        "verificar": false,
+        "fuentes": [
+          "lies",
+          "lies_exe"
+        ]
+      },
+      "compatibilidad_entre_versiones": {
+        "estado": "parcial",
+        "detalle": "La extensión del gestor distingue Xbox WinGDK y Steam Win64; eso acredita destinos, no compatibilidad de cualquier pak, DLL o framework.",
+        "verificar": true,
+        "fuentes": [
+          "lies",
+          "lies_exe"
+        ]
+      },
+      "modloader_xbox": {
+        "nombre": "UE4SS / loaders según mod",
+        "distinto_en_xbox": "ruta_y_posible_build",
+        "soporte_xbox": "verificar_paquete",
+        "verificar": true,
+        "detalle": "Elegir archivos que declaren esa edición y runtime; no trasladar automáticamente una DLL Steam.",
+        "fuentes": [
+          "lies",
+          "lies_exe"
+        ]
+      },
+      "notas": [
+        "El nombre del directorio es LiesofP y el prefijo del ejecutable es LOP; no se deducen uno del otro.",
+        "Ejecutable Xbox documentado por autor de mod; revisar cambios posteriores y DLC."
+      ],
+      "fuentes": [
+        "lies",
+        "lies_exe"
+      ]
+    },
+    {
+      "id": "atomicheart",
+      "nombre": "Atomic Heart",
+      "verificar": true,
+      "carpetas_tipicas_xboxgames": {
+        "valor": [
+          "Atomic Heart/Content"
+        ],
+        "verificar": true,
+        "fuentes": [
+          "atomic",
+          "atomic_exe"
+        ]
+      },
+      "ejecutable_xbox": {
+        "valor": [
+          "AtomicHeart/Binaries/WinGDK/AtomicHeart-WinGDK-Shipping.exe"
+        ],
+        "verificar": true,
+        "fuentes": [
+          "atomic",
+          "atomic_exe"
+        ]
+      },
+      "ejecutable_steam": {
+        "valor": [
+          "AtomicHeart/Binaries/Win64/AtomicHeart-Win64-Shipping.exe"
+        ],
+        "verificar": true,
+        "fuentes": [
+          "atomic",
+          "atomic_exe"
+        ]
+      },
+      "carpeta_binarios_xbox": {
+        "valor": [
+          "AtomicHeart/Binaries/WinGDK"
+        ],
+        "verificar": false,
+        "fuentes": [
+          "atomic",
+          "atomic_exe"
+        ]
+      },
+      "compatibilidad_entre_versiones": {
+        "estado": "parcial",
+        "detalle": "La extensión del gestor documenta rutas Steam/Xbox y varios instaladores; revisar individualmente DLL, Lua, assets y build.",
+        "verificar": true,
+        "fuentes": [
+          "atomic",
+          "atomic_exe"
+        ]
+      },
+      "modloader_xbox": {
+        "nombre": "UE4SS / proxy según mod",
+        "distinto_en_xbox": "ruta_y_posible_build",
+        "soporte_xbox": "documentado_en_extension",
+        "verificar": true,
+        "detalle": "La ruta WinGDK está documentada; el soporte de la versión concreta del loader debe confirmarse.",
+        "fuentes": [
+          "atomic",
+          "atomic_exe"
+        ]
+      },
+      "notas": [
+        "DLSSTweaks se coloca junto al proceso Shipping, no junto al bootstrap de raíz.",
+        "La guía del autor usa AtomicHeart-***-Shipping.exe: los nombres completos se conservan como candidatos.",
+        "Los mods de configuración pueden ir a AppData y no a la instalación."
+      ],
+      "fuentes": [
+        "atomic",
+        "atomic_exe"
+      ]
+    },
+    {
+      "id": "ark_survival_evolved",
+      "nombre": "ARK: Survival Evolved",
+      "verificar": true,
+      "carpetas_tipicas_xboxgames": {
+        "valor": [
+          "ARK- Survival Evolved/Content",
+          "ARK Survival Evolved/Content"
+        ],
+        "verificar": true,
+        "fuentes": [
+          "ark_ase"
+        ]
+      },
+      "ejecutable_xbox": {
+        "valor": null,
+        "verificar": true,
+        "fuentes": [
+          "ark_ase"
+        ]
+      },
+      "ejecutable_steam": {
+        "valor": [
+          "ShooterGame/Binaries/Win64/ShooterGame.exe"
+        ],
+        "verificar": true,
+        "fuentes": [
+          "ark_ase"
+        ]
+      },
+      "carpeta_binarios_xbox": {
+        "valor": null,
+        "verificar": true,
+        "fuentes": [
+          "ark_ase"
+        ]
+      },
+      "compatibilidad_entre_versiones": {
+        "estado": "no_para_mods_workshop_en_windows_store",
+        "detalle": "El anuncio oficial Windows 10 declara ausencia de soporte Workshop en esa edición; no confundir con Survival Ascended. Revalidar cambios desde el anuncio histórico.",
+        "verificar": true,
+        "fuentes": [
+          "ark_ase"
+        ]
+      },
+      "modloader_xbox": {
+        "nombre": "Sistema de mods ASE / Steam Workshop",
+        "distinto_en_xbox": true,
+        "soporte_xbox": "no_documentado_para_paquetes_steam",
+        "verificar": true,
+        "detalle": "No instalar paquetes Workshop Steam en Xbox PC por mera coincidencia de motor.",
+        "fuentes": [
+          "ark_ase"
+        ]
+      },
+      "notas": [
+        "Ficha de ASE, separada de ASA.",
+        "La edición Windows Store histórica es UWP; puede estar en WindowsApps y no en XboxGames/Content.",
+        "No inferir WinGDK ni ejecutable Xbox; se dejan sin confirmar."
+      ],
+      "fuentes": [
+        "ark_ase"
+      ]
+    },
+    {
+      "id": "ark_survival_ascended",
+      "nombre": "ARK: Survival Ascended",
+      "verificar": true,
+      "carpetas_tipicas_xboxgames": {
+        "valor": [
+          "ARK- Survival Ascended/Content",
+          "ARK Survival Ascended/Content"
+        ],
+        "verificar": true,
+        "fuentes": [
+          "ark_asa"
+        ]
+      },
+      "ejecutable_xbox": {
+        "valor": null,
+        "verificar": true,
+        "fuentes": [
+          "ark_asa"
+        ]
+      },
+      "ejecutable_steam": {
+        "valor": [
+          "ShooterGame/Binaries/Win64/ArkAscended.exe",
+          "ShooterGame/Binaries/Win64/ArkAscended_BE.exe"
+        ],
+        "verificar": true,
+        "fuentes": [
+          "ark_asa"
+        ]
+      },
+      "carpeta_binarios_xbox": {
+        "valor": null,
+        "verificar": true,
+        "fuentes": [
+          "ark_asa"
+        ]
+      },
+      "compatibilidad_entre_versiones": {
+        "estado": "segun_cooking_y_plataformas_del_mod",
+        "detalle": "ASA usa catálogo integrado CurseForge y paquetes cooked para plataformas seleccionadas; una etiqueta PC o Xbox no prueba intercambiabilidad binaria.",
+        "verificar": false,
+        "fuentes": [
+          "ark_asa"
+        ]
+      },
+      "modloader_xbox": {
+        "nombre": "Sistema integrado CurseForge/ASA",
+        "distinto_en_xbox": "paquete_y_plataformas_destino",
+        "soporte_xbox": "integrado",
+        "verificar": false,
+        "detalle": "Preferir instalación mediante el catálogo del juego; conservar metadatos de plataforma/cooking y versión. No desplegar como un pak UE genérico.",
+        "fuentes": [
+          "ark_asa"
+        ]
+      },
+      "notas": [
+        "No reutilizar mods de Survival Evolved.",
+        "Carpetas y ejecutables son candidatos; Xbox sin ejecutable confirmado.",
+        "No elegir una variante por Steam/Game Pass únicamente cuando la fuente ya ofrece metadatos de plataforma."
+      ],
+      "fuentes": [
+        "ark_asa"
+      ]
+    },
+    {
+      "id": "remnant2",
+      "nombre": "Remnant II",
+      "verificar": true,
+      "carpetas_tipicas_xboxgames": {
+        "valor": [
+          "Remnant 2/Content",
+          "Remnant II/Content"
+        ],
+        "verificar": true,
+        "fuentes": [
+          "remnant",
+          "remnant_gp"
+        ]
+      },
+      "ejecutable_xbox": {
+        "valor": [
+          "Remnant2/Binaries/WinGDK/Remnant2-WinGDK-Shipping.exe"
+        ],
+        "verificar": true,
+        "fuentes": [
+          "remnant",
+          "remnant_gp"
+        ]
+      },
+      "ejecutable_steam": {
+        "valor": [
+          "Remnant2/Binaries/Win64/Remnant2-Win64-Shipping.exe"
+        ],
+        "verificar": true,
+        "fuentes": [
+          "remnant",
+          "remnant_gp"
+        ]
+      },
+      "carpeta_binarios_xbox": {
+        "valor": [
+          "Remnant2/Binaries/WinGDK"
+        ],
+        "verificar": true,
+        "fuentes": [
+          "remnant",
+          "remnant_gp"
+        ]
+      },
+      "compatibilidad_entre_versiones": {
+        "estado": "parcial",
+        "detalle": "Hay variantes publicadas explícitamente para Game Pass; el autor de la extensión distingue scripts y paks. Confirmar soporte y rutas de cada paquete.",
+        "verificar": true,
+        "fuentes": [
+          "remnant",
+          "remnant_gp"
+        ]
+      },
+      "modloader_xbox": {
+        "nombre": "UE4SS / loader específico",
+        "distinto_en_xbox": "ruta_y_posible_build",
+        "soporte_xbox": "verificar_por_mod",
+        "verificar": true,
+        "detalle": "No presuponer que todos los scripts o DLL de Steam funcionan en Game Pass.",
+        "fuentes": [
+          "remnant",
+          "remnant_gp"
+        ]
+      },
+      "notas": [
+        "Ejecutable y rutas Xbox son candidatos pendientes de verificación primaria completa.",
+        "No instalar paks en Binaries/WinGDK/~mods solo porque ahí vaya el loader; distinguir Content/Paks de scripts."
+      ],
+      "fuentes": [
+        "remnant",
+        "remnant_gp"
+      ]
+    },
+    {
+      "id": "hifirush",
+      "nombre": "Hi-Fi RUSH",
+      "verificar": true,
+      "carpetas_tipicas_xboxgames": {
+        "valor": [
+          "Hi-Fi RUSH/Content"
+        ],
+        "verificar": true,
+        "fuentes": [
+          "hifi"
+        ]
+      },
+      "ejecutable_xbox": {
+        "valor": [
+          "Hibiki/Binaries/WinGDK/Hi-Fi-Rush.exe"
+        ],
+        "verificar": true,
+        "fuentes": [
+          "hifi"
+        ]
+      },
+      "ejecutable_steam": {
+        "valor": [
+          "Hibiki/Binaries/Win64/Hi-Fi-Rush.exe"
+        ],
+        "verificar": true,
+        "fuentes": [
+          "hifi"
+        ]
+      },
+      "carpeta_binarios_xbox": {
+        "valor": [
+          "Hibiki/Binaries/WinGDK"
+        ],
+        "verificar": false,
+        "fuentes": [
+          "hifi"
+        ]
+      },
+      "compatibilidad_entre_versiones": {
+        "estado": "parcial",
+        "detalle": "Overdub declara soporte Steam/Epic/Xbox con releases según tienda y versión; su compatibilidad con mods UE4SS es parcial.",
+        "verificar": false,
+        "fuentes": [
+          "hifi"
+        ]
+      },
+      "modloader_xbox": {
+        "nombre": "Overdub",
+        "distinto_en_xbox": true,
+        "soporte_xbox": "documentado",
+        "verificar": false,
+        "detalle": "Xbox usa dsound.dll; Steam/Epic XAPOFX1_5.dll. No renombrar ni mezclar proxys de distintos loaders.",
+        "fuentes": [
+          "hifi"
+        ]
+      },
+      "notas": [
+        "Los nombres de ejecutable son candidatos, no confirmados por la documentación consultada.",
+        "El prefijo de carpeta Hibiki no implica que el ejecutable se llame Hibiki-Shipping.exe.",
+        "Es un contraejemplo claro a cambiar solo Win64 por WinGDK."
+      ],
+      "fuentes": [
+        "hifi"
+      ]
+    },
+    {
+      "id": "bannerlord",
+      "nombre": "Mount & Blade II: Bannerlord",
+      "verificar": true,
+      "carpetas_tipicas_xboxgames": {
+        "valor": [
+          "Mount & Blade II- Bannerlord/Content",
+          "Mount & Blade II Bannerlord/Content"
+        ],
+        "verificar": true,
+        "fuentes": [
+          "bannerlord"
+        ]
+      },
+      "ejecutable_xbox": {
+        "valor": [
+          "bin/Gaming.Desktop.x64_Shipping_Client/Bannerlord.exe"
+        ],
+        "verificar": true,
+        "fuentes": [
+          "bannerlord"
+        ]
+      },
+      "ejecutable_steam": {
+        "valor": [
+          "bin/Win64_Shipping_Client/Bannerlord.exe"
+        ],
+        "verificar": true,
+        "fuentes": [
+          "bannerlord"
+        ]
+      },
+      "carpeta_binarios_xbox": {
+        "valor": [
+          "bin/Gaming.Desktop.x64_Shipping_Client"
+        ],
+        "verificar": true,
+        "fuentes": [
+          "bannerlord"
+        ]
+      },
+      "compatibilidad_entre_versiones": {
+        "estado": "parcial",
+        "detalle": "BLSE documenta particularidades Xbox/EGS; comprobar juego, launcher, Harmony y dependencias de cada mod.",
+        "verificar": true,
+        "fuentes": [
+          "bannerlord"
+        ]
+      },
+      "modloader_xbox": {
+        "nombre": "BLSE / Harmony",
+        "distinto_en_xbox": "lanzamiento_y_dependencias",
+        "soporte_xbox": "con_instrucciones_especificas",
+        "verificar": true,
+        "detalle": "La guía distingue Harmony en Xbox y cómo lanzar BLSE en EGS; las rutas de esta ficha necesitan comprobación en disco.",
+        "fuentes": [
+          "bannerlord"
+        ]
+      },
+      "notas": [
+        "No es un caso de Binaries/Win64→Binaries/WinGDK.",
+        "Las rutas binarias son candidatas; confirmar por manifiesto/archivos.",
+        "La advertencia Xbox del autor no certifica todos los mods Bannerlord."
+      ],
+      "fuentes": [
+        "bannerlord"
+      ]
+    }
+  ],
+  "palabras_clave": {
+    "xbox": {
+      "nombre": "Xbox app / Microsoft Store en PC",
+      "fuertes": [
+        "pc game pass",
+        "xbox game pass pc",
+        "game pass pc",
+        "microsoft store",
+        "windows store",
+        "ms store",
+        "xbox pc",
+        "pc xbox",
+        "wingdk",
+        "win-gdk"
+      ],
+      "contextuales": [
+        "game pass",
+        "gamepass",
+        "game-pass",
+        "xbox game pass",
+        "xbox app",
+        "xbox",
+        "gdk",
+        "uwp",
+        "win store",
+        "winstore",
+        "msstore",
+        "xgp"
+      ],
+      "verificar": true,
+      "nota": "Heurística, no taxonomía oficial Nexus. Xbox sin PC puede ser consola o mando; UWP y GDK son runtimes distintos. Variantes adicionales requieren muestreo.",
+      "fuentes": [
+        "sfse",
+        "skse",
+        "palworld_nexus",
+        "hifi",
+        "egs_ejemplo"
+      ],
+      "falsos_positivos": [
+        "xbox controller",
+        "xbox buttons",
+        "xbox icons",
+        "xbox prompts",
+        "xbox one",
+        "xbox series x",
+        "xbox series s",
+        "xbox 360",
+        "xinput",
+        "gamepad",
+        "xbox achievements",
+        "xbox live",
+        "xbox cloud gaming",
+        "xcloud"
+      ],
+      "nota_falsos_positivos": "No excluir toda la descripción: ignorar la mención de mando/consola/servicio como evidencia de tienda y evaluar por separado otras frases válidas."
+    },
+    "steam": {
+      "fuertes": [
+        "steam version",
+        "steam edition",
+        "steam build",
+        "steam only",
+        "steam release",
+        "steam variant",
+        "steam compatible"
+      ],
+      "contextuales": [
+        "steam",
+        "win64"
+      ],
+      "verificar": true,
+      "nota": "Win64 no identifica Steam: también puede aparecer en Epic, GOG y Microsoft Store. Steam compatible no significa Steam exclusivo.",
+      "falsos_positivos": [
+        "steam workshop",
+        "steam deck",
+        "steam input",
+        "steam controller",
+        "steamvr",
+        "steam vr",
+        "steampunk",
+        "steam engine",
+        "steam powered",
+        "steampowered.com",
+        "store.steampowered.com",
+        "steamcommunity.com"
+      ],
+      "fuentes": [
+        "sfse",
+        "skse",
+        "egs_ejemplo",
+        "hifi"
+      ]
+    },
+    "epic": {
+      "fuertes": [
+        "epic games store",
+        "egs version",
+        "egs build",
+        "egs only",
+        "epic version",
+        "epic edition",
+        "epic games version"
+      ],
+      "contextuales": [
+        "epic",
+        "egs",
+        "epic games"
+      ],
+      "verificar": true,
+      "nota": "EGS Version está documentado en un loader; los demás alias son reglas propuestas que necesitan corpus de archivos.",
+      "falsos_positivos": [
+        "epic loot",
+        "epic armor",
+        "epic armour",
+        "epic weapon",
+        "epic difficulty",
+        "epic music",
+        "epic online services",
+        "epic games launcher download",
+        "unreal engine by epic games"
+      ],
+      "fuentes": [
+        "egs_ejemplo",
+        "skse",
+        "hifi"
+      ]
+    },
+    "gog": {
+      "fuertes": [
+        "gog version",
+        "gog edition",
+        "gog build",
+        "gog only",
+        "gog release",
+        "gog galaxy version"
+      ],
+      "contextuales": [
+        "gog",
+        "gog galaxy",
+        "gog.com",
+        "drm free",
+        "drm-free"
+      ],
+      "verificar": true,
+      "nota": "DRM-free no equivale a GOG; Steam/Epic también distribuyen juegos sin DRM. Una URL comercial no demuestra plataforma destino.",
+      "falsos_positivos": [
+        "good old games soundtrack",
+        "gog.com referral",
+        "buy on gog",
+        "goggles"
+      ],
+      "fuentes": [
+        "skse",
+        "f4se"
+      ]
+    },
+    "custom": {
+      "fuertes": [],
+      "contextuales": [],
+      "falsos_positivos": [],
+      "verificar": false,
+      "nota": "custom indica origen de detección desconocido, no una build ni una plataforma compatible. Permitir seleccionar tienda/build tras inspeccionar."
+    }
+  },
+  "reglas_recomendadas": {
+    "tienda_y_build": "Guardar por separado store, runtime/packaging (win32,gdk,uwp,unknown), versión/hash del ejecutable, arquitectura, raíz, idioma/edición y método de lanzamiento. Game Pass es una licencia; puede entregar juegos mediante EA app o Ubisoft Connect, que no deben etiquetarse Xbox GDK.",
+    "sin_etiquetas": "Conjunto vacío = desconocido; solo marcar universal si lo afirma el autor o metadatos fiables.",
+    "evidencia": "Prioridad: metadatos de fuente y requisitos del archivo > nombre/descripción del archivo > título del mod > texto general. Evaluar cada archivo por separado. Una página puede ofrecer variantes incompatibles entre sí.",
+    "html": "No analizar navegación, comentarios, recomendaciones, enlaces comerciales ni permisos genéricos Nexus: la cláusula de permisos Steam Workshop aparece en páginas de otras tiendas.",
+    "negacion": "Extraer soportadas y excluidas separadamente. 'not compatible with Game Pass', 'no Game Pass support', 'Steam only', 'except GOG', 'works on Steam and Xbox' y 'not tested on Xbox' no son equivalentes.",
+    "filtro": "Ocultar por defecto solo incompatibilidad explícita de suficiente confianza. Mantener desconocidos visibles con estado 'Sin confirmar'. No llamar 'compatibles' a todo lo que no esté excluido.",
+    "limites_de_palabra": "Normalizar Unicode NFKC y casefold; separar _, -, espacios y puntuación en nombres de archivo. Buscar tokens/frases completas; no buscar steam, epic o gog como subcadenas libres.",
+    "variantes": "No afirmar exclusividad por encontrar una tienda. 'Steam and GOG' = ambas, 'Steam compatible' no excluye Xbox. Si hay contradicción o negación ambigua, pedir elección y guardar evidencia/confianza.",
+    "seleccion_archivo": "Preseleccionar solo candidato inequívoco que cumpla tienda, build, loader, dependencias, DLC, versión del mod y rol de archivo. No elegir por defecto entre parche, opcional, fuente, archivo antiguo y principal por mera coincidencia textual.",
+    "rutas_unreal": "Aplicar mapeo por perfil y segmento de ruta completo después de inspeccionar instalación. No reemplazar cadenas globalmente. Si existen ambas carpetas, ninguna o varios binarios, revisión manual. Distinguir bootstrap y proceso Shipping.",
+    "binarios": "Cambiar carpeta no convierte DLL, offsets, firmas, bytecode ni dependencias entre builds. Rechazar paquetes con loader incompatible aunque la ruta de destino exista.",
+    "manifiestos": "Leer MicrosoftGame.config o AppXManifest.xml para identidad y ejecutable cuando estén disponibles; no modificarlos para forzar rutas. Un manifiesto puede señalar bootstrap: distinguirlo del proceso real donde se carga el loader.",
+    "seguridad": "Resolver y validar de nuevo cada destino después del mapeo contra la raíz permitida; no crear ni seguir rutas fuera de ella.",
+    "reevaluacion": "Revalidar después de actualizar el juego o cambiar tienda, build, loader o perfil. Permitir varias instalaciones del mismo juego con identidades y rutas independientes."
+  },
+  "ejemplos_clasificacion": [
+    {
+      "texto": "Steam Workshop or other platforms",
+      "contexto": "permisos genéricos Nexus",
+      "soportadas": [],
+      "excluidas": [],
+      "estado": "ignorar"
+    },
+    {
+      "texto": "Not compatible with Game Pass",
+      "contexto": "descripción del archivo",
+      "soportadas": [],
+      "excluidas": [
+        "xbox"
+      ],
+      "estado": "incompatibilidad_explicita"
+    },
+    {
+      "texto": "Game Pass untested",
+      "contexto": "descripción del archivo",
+      "soportadas": [],
+      "excluidas": [],
+      "estado": "desconocida"
+    },
+    {
+      "texto": "Steam and GOG version",
+      "contexto": "nombre del archivo",
+      "soportadas": [
+        "steam",
+        "gog"
+      ],
+      "excluidas": [],
+      "estado": "compatible_declarado_no_exclusivo"
+    },
+    {
+      "texto": "Steam Deck controller icons",
+      "contexto": "título del mod",
+      "soportadas": [],
+      "excluidas": [],
+      "estado": "sin_evidencia_de_tienda"
+    },
+    {
+      "texto": "Xbox button prompts",
+      "contexto": "nombre del archivo",
+      "soportadas": [],
+      "excluidas": [],
+      "estado": "sin_evidencia_de_tienda"
+    },
+    {
+      "texto": "WinGDK",
+      "contexto": "nombre del archivo",
+      "soportadas": [
+        "xbox"
+      ],
+      "excluidas": [],
+      "estado": "candidata_requiere_juego_build_y_loader"
+    },
+    {
+      "texto": "Steam only",
+      "contexto": "nombre del archivo",
+      "soportadas": [
+        "steam"
+      ],
+      "excluidas": [
+        "xbox",
+        "epic",
+        "gog"
+      ],
+      "estado": "exclusividad_declarada"
+    },
+    {
+      "texto": "Epic Loot",
+      "contexto": "título del mod",
+      "soportadas": [],
+      "excluidas": [],
+      "estado": "sin_evidencia_de_tienda"
+    }
+  ],
+  "fuentes": {
+    "sfse": {
+      "url": "https://sfse.silverlock.org/",
+      "tipo": "autor_loader",
+      "respalda": "SFSE solo admite Steam; no Windows Store/Game Pass."
+    },
+    "skse": {
+      "url": "https://www.nexusmods.com/skyrimspecialedition/mods/30379",
+      "tipo": "autor_loader",
+      "respalda": "SKSE64: Steam y GOG con builds apropiadas; EGS y Game Pass no admitidos."
+    },
+    "f4se": {
+      "url": "https://f4se.silverlock.org/",
+      "tipo": "autor_loader",
+      "respalda": "F4SE admite Steam/GOG según runtime; no Windows Store."
+    },
+    "starfield": {
+      "url": "https://www.nexusmods.com/site/mods/634",
+      "tipo": "extension_gestor",
+      "respalda": "Starfield.exe y raíz XboxGames/Starfield/Content."
+    },
+    "palworld": {
+      "url": "https://pwmodding.wiki/uk/docs/users/ue4ss/installation",
+      "tipo": "documentacion_proyecto_modding",
+      "respalda": "Palworld-WinGDK-Shipping.exe, Pal/Binaries/WinGDK y variante Steam Win64."
+    },
+    "palworld_loader": {
+      "url": "https://pwmodding.wiki/docs/users/ue4ss/downloading",
+      "tipo": "documentacion_proyecto_modding",
+      "respalda": "Fork/configuración UE4SS específicos para Palworld y su layout de memoria."
+    },
+    "palworld_nexus": {
+      "url": "https://www.nexusmods.com/palworld/articles/204",
+      "tipo": "guia_autor",
+      "respalda": "Win64 para Steam y WinGDK para Xbox PC."
+    },
+    "hogwarts": {
+      "url": "https://github.com/Nexus-Mods/game-hogwartslegacy",
+      "tipo": "extension_gestor",
+      "respalda": "Instaladores distintos para Lua, Blueprint y otros tipos; no demuestra rutas Xbox."
+    },
+    "hogwarts_gp": {
+      "url": "https://news.xbox.com/de-de/2025/10/08/xbox-game-pass-october-2025-wave-1/",
+      "tipo": "editor_juego",
+      "respalda": "Hogwarts Legacy incorporado para cloud, consola y PC; no demuestra binarios."
+    },
+    "hogwarts_mp": {
+      "url": "https://hogwarts.mp/play",
+      "tipo": "autor_mod",
+      "respalda": "El soporte Game Pass de este mod concreto es experimental; no generalizar."
+    },
+    "smapi": {
+      "url": "https://wiki.stardewvalley.net/Modding%3AInstalling_SMAPI_on_Windows",
+      "tipo": "documentacion_loader",
+      "respalda": "Instalación SMAPI en Xbox app; pasos de lanzamiento específicos."
+    },
+    "smapi_app": {
+      "url": "https://github.com/Nexus-Mods/NexusMods.App/blob/main/docs/developers/games/0001-StardewValley.md",
+      "tipo": "documentacion_gestor",
+      "respalda": "Stardew Valley.exe en Xbox y adaptación del lanzamiento SMAPI."
+    },
+    "hades": {
+      "url": "https://github.com/nbusseneau/hephaistos",
+      "tipo": "autor_mod",
+      "respalda": "Microsoft Store Hades/Content/Hades.exe y Content/Content; compatibilidad de ese mod concreto."
+    },
+    "hades_importer": {
+      "url": "https://www.nexusmods.com/hades/mods/26",
+      "tipo": "autor_loader",
+      "respalda": "Mod Importer va a Content; Microsoft Store tiene Hades/Content/Content."
+    },
+    "grounded": {
+      "url": "https://github.com/orax-Grounded-mods/documentation/wiki/Manual-installation",
+      "tipo": "documentacion_autor_mods",
+      "respalda": "Win64 Steam; guía Xbox propone WinGDK pero declara no haberlo verificado."
+    },
+    "sot": {
+      "url": "https://support.seaofthieves.com/articles/24643308439314-Support-Enforcement-Policy-Updates",
+      "tipo": "editor_juego",
+      "respalda": "Manipular o añadir archivos para modificar el juego incumple la política; ReShade sancionable."
+    },
+    "lies": {
+      "url": "https://www.nexusmods.com/site/mods/852",
+      "tipo": "autor_extension_gestor",
+      "respalda": "LiesofP/Binaries/Win64 frente a WinGDK en Xbox y tipos de mod."
+    },
+    "lies_exe": {
+      "url": "https://www.nexusmods.com/liesofp/mods/26",
+      "tipo": "autor_mod",
+      "respalda": "LOP-WinGDK-Shipping.exe y ruta Xbox LiesofP/Binaries/WinGDK."
+    },
+    "atomic": {
+      "url": "https://www.nexusmods.com/site/mods/1832",
+      "tipo": "autor_extension_gestor",
+      "respalda": "AtomicHeart/Binaries/WinGDK para Xbox, Win64 para Steam; rutas según tipo de mod."
+    },
+    "atomic_exe": {
+      "url": "https://www.nexusmods.com/atomicheart/mods/31",
+      "tipo": "autor_mod",
+      "respalda": "AtomicHeart-***-Shipping.exe y ambas carpetas de binarios; no demuestra cualquier loader."
+    },
+    "ark_ase": {
+      "url": "https://survivetheark.com/index.php?/forums/topic/285881-ark-survival-evolved-available-now-on-windows-10-with-crossplay/",
+      "tipo": "editor_juego",
+      "respalda": "Anuncio Windows 10 original: sin mods de Workshop en esa edición. Fuente histórica; revisar cambios posteriores."
+    },
+    "ark_asa": {
+      "url": "https://support.curseforge.com/support/solutions/articles/9000232897-ark-survival-ascended-creators-getting-started",
+      "tipo": "plataforma_mods_oficial",
+      "respalda": "ASA: navegador integrado, cooking y selección PC/cross-platform; no reutilizar paquetes de ASE."
+    },
+    "remnant": {
+      "url": "https://www.nexusmods.com/site/mods/645?tab=posts",
+      "tipo": "autor_extension_gestor",
+      "respalda": "Autor distingue scripts y pak; ruta de scripts Steam Win64. Ruta Xbox queda pendiente."
+    },
+    "remnant_gp": {
+      "url": "https://www.nexusmods.com/remnant2/mods/112",
+      "tipo": "autor_mod",
+      "respalda": "Ejemplo explícito de variante denominada Game Pass; no prueba compatibilidad global ni rutas."
+    },
+    "hifi": {
+      "url": "https://www.nexusmods.com/hifirush/mods/54",
+      "tipo": "autor_loader",
+      "respalda": "Overdub: Steam/Epic Win64 con XAPOFX1_5.dll; Xbox WinGDK con dsound.dll; elegir release por tienda/build."
+    },
+    "bannerlord": {
+      "url": "https://www.nexusmods.com/mountandblade2bannerlord/mods/1",
+      "tipo": "autor_loader",
+      "respalda": "BLSE: advertencias Xbox y EGS; diferencias de Harmony y del lanzamiento."
+    },
+    "egs_ejemplo": {
+      "url": "https://www.nexusmods.com/theouterworlds/mods/230",
+      "tipo": "autor_loader",
+      "respalda": "Ejemplo de etiqueta EGS Version; los permisos genéricos de Nexus mencionan Steam Workshop sin indicar compatibilidad."
+    },
+    "gdk": {
+      "url": "https://learn.microsoft.com/en-us/gaming/gdk/docs/features/common/game-config/microsoftgameconfig-overview",
+      "tipo": "documentacion_microsoft",
+      "respalda": "Identidad y ejecutables en MicrosoftGame.config; Win32 con identidad no equivale a UWP ni exige nombre WinGDK."
+    }
+  }
+}

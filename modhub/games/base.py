@@ -42,9 +42,11 @@ class ModLoader:
     homepage: str = ""
     note: str = ""
     launcher: str = ""                      # .exe que hay que abrir EN VEZ del juego para que cargue los mods
+    unsupported: tuple[str, ...] = ()       # versiones del juego donde NO existe (p. ej. SKSE en Game Pass)
 
     def is_installed(self, game_root: Path) -> bool:
-        return any((game_root / p).exists() for p in self.detect)
+        from ..core.platform_paths import loader_paths      # Xbox / Game Pass: Binaries/WinGDK
+        return any((game_root / p).exists() for p in loader_paths(game_root, self.detect))
 
     def provided_by(self, targets: Iterable[str]) -> bool:
         """¿Este mod ES el loader? (instala alguno de sus archivos de detección)"""

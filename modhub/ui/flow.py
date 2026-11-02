@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from ..sources import DownloadPolicy
+from ..sources.platforms import PLATFORM_NAMES
 from .intercept import PendingIntercept
 from .widgets import open_url, run_command, spawn
 
@@ -20,8 +21,13 @@ class InstallFlow:
                 actions.append((f"Instalar dependencias ({len(deps)})", lambda: self.install_dependencies(game_id, result)))
             if result.plan and result.plan.missing_loaders:
                 loader = result.plan.missing_loaders[0]
-                msg += f" Atención: falta {loader.name}; sin él el mod no funcionará."
-                if loader.sources:
+                platform = self.ctx.game_platform(game_id)
+                if platform in loader.unsupported:
+                    msg += (f" Atención: este mod necesita {loader.name}, que no existe para la versión "
+                            f"{PLATFORM_NAMES[platform]} del juego; probablemente no funcionará.")
+                else:
+                    msg += f" Atención: falta {loader.name}; sin él el mod no funcionará."
+                if loader.sources and platform not in loader.unsupported:
                     actions.append((f"Instalar {loader.name}", lambda: self.install_loader(game_id, loader)))
             level = "warn" if (result.plan and result.plan.missing_loaders) or result.message else "ok"
             self.notify(msg + (f" {result.message}" if result.message else ""), level, actions or None)

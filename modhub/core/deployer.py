@@ -32,6 +32,7 @@ from enum import Enum
 from pathlib import Path, PurePosixPath
 
 from .extractor import InstallPlan
+from .platform_paths import PathAdapter
 from .staging import same_volume
 
 log = logging.getLogger("modhub.deploy")
@@ -151,6 +152,16 @@ class Deployer:
         conflicts = {k: v for k, v in owners.items() if len(v) > 1}
         return desired, conflicts
 
+    @staticmethod
+    def _adapt_to_game(root: Path, desired: dict[str, _Want]) -> dict[str, _Want]:
+        """Xbox / Game Pass: lo que iba a Binaries/Win64 va a Binaries/WinGDK (ver platform_paths)."""
+        adapter = PathAdapter(root)
+        out: dict[str, _Want] = {}
+        for want in desired.values():
+            rel = adapter.adapt(want.rel_path)
+            out[rel.lower()] = _Want(rel, want.mod_id, want.source) if rel != want.rel_path else want
+        return out
+
     def _sync(self, game_id: int, *, purge: bool) -> DeployReport:
         game, root = self._game(game_id)
         report = DeployReport()
@@ -158,6 +169,7 @@ class Deployer:
         backups_dir = Path(game["staging_path"]) / "backups"
 
         desired, report.conflicts = ({}, {}) if purge else self.desired_state(game_id)
+        desired = self._adapt_to_game(root, desired)
         current = {r["rel_key"]: r for r in self.db.query("SELECT * FROM deployed_files WHERE game_id=?", (game_id,))}
 
         # 1) Quitar lo que sobra, cambió de mod o apunta a un archivo de staging viejo

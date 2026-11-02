@@ -8,6 +8,7 @@ from PySide6.QtWidgets import (QDialog, QFileDialog, QHBoxLayout, QHeaderView, Q
                                QTableWidget, QVBoxLayout, QWidget)
 
 from ..games import get_profile
+from ..sources.platforms import PLATFORM_NAMES
 from .theme import COLORS
 from .widgets import button, open_folder, page_header, play_game, spawn, text_item
 
@@ -91,18 +92,27 @@ class GamesView(QWidget):
             profile = get_profile(g["profile"])
             loaders = self.ctx.loader_status(g["id"])
             parts, missing = [], False
+            platform = self.ctx.game_platform(g["id"])
             for loader, required, installed in loaders:
+                if platform in loader.unsupported and not installed:
+                    parts.append(f"⛔ {loader.name} (no existe para {PLATFORM_NAMES[platform]})")
+                    missing = True
+                    continue
                 mark = "✔" if installed else ("✖" if required else "–")
                 parts.append(f"{mark} {loader.name}")
                 missing |= required and not installed
             enabled = self.ctx.db.one("SELECT COUNT(*) AS n FROM mods WHERE game_id=? AND state='enabled'",
                                       (g["id"],))["n"]
             self.table.setItem(r, 0, text_item(g["name"], data=g["id"]))
-            self.table.setItem(r, 1, text_item(STORE_NAMES.get(g["store"], g["store"] or "—")))
+            store = STORE_NAMES.get(g["store"], g["store"] or "—")
+            if g["store"] == "custom" and platform:
+                store += f" ({PLATFORM_NAMES[platform]})"
+            self.table.setItem(r, 1, text_item(store))
             self.table.setItem(r, 2, text_item(profile.name if profile.slug != "generic" else "Genérico",
                                                tooltip=profile.notes))
             li = text_item("   ".join(parts) or "No necesita",
-                           tooltip="✔ instalado · ✖ obligatorio y falta · – opcional sin instalar")
+                           tooltip="✔ instalado · ✖ obligatorio y falta · – opcional sin instalar · "
+                                   "⛔ no existe para tu versión del juego")
             if missing:
                 li.setForeground(Qt.GlobalColor.yellow)
             self.table.setItem(r, 3, li)

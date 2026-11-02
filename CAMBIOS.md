@@ -1,5 +1,25 @@
 # Cambios
 
+## 0.6.0 — versión del juego: Steam, Xbox / PC Game Pass, Epic, GOG
+
+- **Cada juego sabe qué versión es** (la tienda donde se detectó; un juego añadido a mano dentro de `XboxGames`
+  o con binarios `WinGDK` se reconoce como Game Pass).
+- **Los mods y sus archivos se clasifican** leyendo nombre, archivo y descripción («Game Pass version»,
+  «Steam only», «Not compatible with Xbox»…), con negaciones («no funciona en…», «untested») y falsos positivos
+  (Steam Workshop/Deck, mandos de Xbox, «epic armor», steampunk…).
+- **Filtro «Mi versión»** (Automática = la de tu juego): oculta lo que el autor marca solo para otra versión.
+  En los resultados se ve la etiqueta `[Xbox / Game Pass]`, `[Steam]`…
+- **Al instalar se preselecciona el archivo de tu versión**; los de otra versión salen con ⚠.
+- **Rutas Game Pass:** lo que va a `Binaries/Win64` se despliega en `Binaries/WinGDK` cuando el juego usa GDK
+  (se decide mirando la carpeta real, también si un gestor antiguo dejó un `Win64` vacío). UE4SS y otros loaders
+  se detectan en `WinGDK`.
+- **Loaders que no existen en Game Pass** (SKSE64, F4SE) se marcan con ⛔ y ModHub avisa en vez de ofrecerlos.
+- `docs/plataformas_investigacion.json`: investigación de ChatGPT (16 juegos, palabras clave, falsos positivos,
+  fuentes). Sus tres correcciones al plan están aplicadas: «sin etiqueta» = desconocido (no se oculta), solo se
+  cambia el archivo por defecto con motivo claro, y la ruta se decide con los archivos reales.
+
+Pruebas: 139, todas pasan.
+
 ## 0.5.0 — trabajo conjunto Claude + ChatGPT
 
 **De la revisión de ChatGPT** (integrado tal cual):
