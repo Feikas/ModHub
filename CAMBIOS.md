@@ -1,5 +1,18 @@
 # Cambios
 
+## 0.7.0 — Nexus con cuenta gratuita, como Vortex
+
+- Al instalar un mod de Nexus sin Premium, ModHub abre la **página de descarga de ese archivo** (no la ficha):
+  pulsas «Slow download» y ModHub recibe el enlace, descarga, instala y activa solo.
+- **Cola de páginas:** si pides varios mods (o sus dependencias), se abren de una en una; al llegar el enlace de
+  uno se abre el siguiente. Avisos con «Volver a abrir», «Saltar» y «Cancelar todos»; en la barra de estado se ve
+  qué mod espera tu clic y cuántos quedan.
+- El enlace se reconoce aunque lo pulses en otra pestaña, y va **al juego desde el que lo pediste** sin preguntar.
+- Si `nxm://` no está activado para ModHub (lo tiene Vortex/MO2), avisa de cómo activarlo en Ajustes → Enlaces.
+- Las dependencias de Nexus que requieren la web ya no se pierden: pasan a la cola.
+
+Pruebas: 144, todas pasan.
+
 ## 0.6.0 — versión del juego: Steam, Xbox / PC Game Pass, Epic, GOG
 
 - **Cada juego sabe qué versión es** (la tienda donde se detectó; un juego añadido a mano dentro de `XboxGames`

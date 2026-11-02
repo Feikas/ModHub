@@ -20,7 +20,9 @@ from .installed_view import InstalledView
 from .intercept import DownloadsWatcher
 from .search_view import SearchView
 from .settings_view import SettingsView
+from .protocol import ProtocolRegistrar
 from .theme import SOURCE_NAMES
+from .web_queue import WebQueue
 from .widgets import NotificationArea, spawn
 
 ICON = Path(__file__).resolve().parent / "assets" / "modhub.png"
@@ -96,7 +98,9 @@ class MainWindow(QMainWindow):
         self.watcher.file_ready.connect(self._on_download_detected)
         if start_watcher and ctx.settings.watch_downloads and not self.watcher.start():
             self.notify(f"No se puede vigilar la carpeta Descargas ({folder}). Cámbiala en Ajustes.", "warn")
-        self.flow = InstallFlow(ctx, self.notify, self.review_mod, self.watcher)
+        self.registrar = registrar or ProtocolRegistrar()
+        self.web_queue = WebQueue(self.notify, protocol_ok=self._protocol_ok)
+        self.flow = InstallFlow(ctx, self.notify, self.review_mod, self.watcher, self.web_queue)
 
         # ── páginas ──
         self.pages: dict[str, QWidget] = {
@@ -104,7 +108,7 @@ class MainWindow(QMainWindow):
             "search": SearchView(ctx, self.notify, self.flow),
             "installed": InstalledView(ctx, self.notify, self.flow),
             "downloads": DownloadsView(ctx, self.notify),
-            "settings": SettingsView(ctx, self.notify, registrar),
+            "settings": SettingsView(ctx, self.notify, self.registrar),
         }
         for key, _ in PAGES:
             self.stack.addWidget(self.pages[key])
@@ -141,6 +145,10 @@ class MainWindow(QMainWindow):
             text = f"⬇ {len(running)} descargando · {speed / 1048576:.1f} MB/s"
         else:
             text = "Sin descargas activas"
+        if self.web_queue.current is not None:
+            text += f"   ·   🌐 Esperando tu clic en la web: «{self.web_queue.current.name}»"
+            if self.web_queue.pending:
+                text += f" (+{len(self.web_queue.pending)} en cola)"
         configured = [SOURCE_NAMES.get(k, k) for k, a in self.ctx.registry.adapters.items() if a.is_configured]
         self.statusBar().showMessage(f"{text}   ·   Webs listas: {', '.join(configured)}")
         self.side_status.setText(f"{len(self.ctx.games())} juegos")
@@ -166,6 +174,14 @@ class MainWindow(QMainWindow):
             return
         req = match.request
         source = SOURCE_NAMES.get(req.source, req.source)
+        expected = self.web_queue.take(req.source, req.mod_id, req.file_id)
+        if expected is not None and self.ctx.game(expected.game_id) is not None:
+            # Lo habías pedido desde ModHub: ya se sabe el juego y el nombre, sin preguntar nada
+            self.notify(f"«{expected.name}»: enlace recibido de {source}. Descargando…", "info")
+            spawn(self.ctx.install_from_protocol(match, expected.game_id),
+                  on_ok=lambda r: self.flow.handle_result(r, expected.game_id, expected.name),
+                  on_error=lambda e: self.notify(f"No se pudo instalar «{expected.name}»: {e}", "error"))
+            return
         if not match.games:
             what = f"«{req.game_id}»" if req.game_id else f"ningún juego compatible con {source}"
             self.notify(f"El enlace es para {what}, pero ese juego no está en ModHub. Añádelo en «Juegos» y "
@@ -234,6 +250,15 @@ class MainWindow(QMainWindow):
         spawn(self.ctx.run_deploy(mod["game_id"], self.ctx.installer.confirm_review, mod_id, plan),
               on_ok=lambda r: self.notify(report_text(f"«{mod['name']}» instalado", r), "ok" if r.ok else "warn"),
               on_error=lambda e: self.notify(str(e), "error"))
+
+    def _protocol_ok(self, source: str) -> bool:
+        """¿El botón de la web mandará el enlace a ModHub? (nxm:// registrado a nuestro nombre)"""
+        if source != "nexus" or not self.registrar.available:
+            return True
+        try:
+            return self.registrar.is_ours("nxm")
+        except OSError:
+            return True
 
     def _offer_resume(self) -> None:
         """Si al cerrar ModHub quedaron descargas a medias, ofrece seguir donde se quedaron."""

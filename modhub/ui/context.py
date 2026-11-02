@@ -356,7 +356,9 @@ class AppContext:
             info = await adapter.get_mod_details(dep.mod_id, ref)
             f = next((x for x in info.files if x.file_id == dep.file_id), None) or info.latest_file()
             if f:
-                out.append(await self.install(game_id, dep.source, info.mod_id, f.file_id))
+                res = await self.install(game_id, dep.source, info.mod_id, f.file_id)
+                res.name = info.name                      # para los avisos («Instala X»)
+                out.append(res)
                 installed.add((dep.source, dep.mod_id))
         return out
 

@@ -36,6 +36,7 @@ class InstallResult:
     deploy: DeployReport | None = None
     message: str = ""
     dependencies: list[Any] = field(default_factory=list)
+    name: str = ""                  # nombre legible del mod (para los avisos)
 
 
 class ModInstaller:

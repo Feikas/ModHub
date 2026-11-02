@@ -1,5 +1,5 @@
 ; Instalador de ModHub (Inno Setup 6). Lo compila construir.bat -> dist\ModHub-Setup.exe
-#define AppVersion "0.6.0"
+#define AppVersion "0.7.0"
 
 [Setup]
 AppId={{8F1C3E2A-6B1D-4C8E-9A57-2D7B5E4F1A90}
