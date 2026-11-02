@@ -1,6 +1,10 @@
 """Nexus con cuenta gratuita: una página cada vez, un clic por mod y lo demás solo (como Vortex)."""
 from __future__ import annotations
 
+import os
+
+os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+
 import httpx
 from PySide6.QtCore import QCoreApplication
 from PySide6.QtWidgets import QApplication

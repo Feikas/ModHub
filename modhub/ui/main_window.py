@@ -212,15 +212,17 @@ class MainWindow(QMainWindow):
         game = self.ctx.game(pending.game_id)
         self.ctx.events.intercept_event.emit(f"Recogido de Descargas: {path.name} → {pending.mod_name}")
         self.notify(f"«{path.name}» descargado. ¿Instalarlo en {game['name']}?", "ok",
-                    [("Instalar", lambda: self._install_archive(pending.game_id, path, pending.mod_name))])
+                    [("Instalar", lambda: self._install_archive(pending.game_id, path, pending.mod_name,
+                                                                 pending.source, pending.mod_id))])
 
     def _install_unexpected(self, path: Path) -> None:
         dlg = ChooseGameDialog(self.ctx.games(), f"¿En qué juego quieres instalar «{path.name}»?", self)
         if dlg.exec() == QDialog.DialogCode.Accepted and dlg.game_id() is not None:
             self._install_archive(dlg.game_id(), path, path.stem)
 
-    def _install_archive(self, game_id: int, path: Path, name: str) -> None:
-        spawn(self.ctx.install_archive(game_id, path, name),
+    def _install_archive(self, game_id: int, path: Path, name: str, source: str | None = None,
+                         mod_id: str | None = None) -> None:
+        spawn(self.ctx.install_archive(game_id, path, name, source=source, mod_id=mod_id),
               on_ok=lambda r: self.flow.handle_result(r, game_id, name),
               on_error=lambda e: self.notify(f"No se pudo instalar «{name}»: {e}", "error"))
 

@@ -1,5 +1,24 @@
 # Cambios
 
+## 0.8.0 — instalar donde dice la descripción del mod (consenso Claude + ChatGPT + Gemini)
+
+- ModHub **lee la descripción** del mod (y la del archivo) y entiende frases como «Extract to Documents\My Games\…»,
+  «copy Engine.ini to %LOCALAPPDATA%\Pal\Saved\Config\Windows», «drop the .pak into Content\Paks\~mods»,
+  «extrae en la carpeta del juego»… (inglés y español; HTML y BBCode de Nexus).
+- **Nuevos destinos fuera del juego:** Documentos, AppData (Roaming/Local/LocalLow) y Saved Games, con lista blanca:
+  siempre dentro de una subcarpeta, nunca fuera de ellas, nunca datos de Steam (userdata). Allí se usa **copia**
+  (no enlaces) porque el juego reescribe esos archivos; se guarda el original y se restaura al desactivar.
+- **Son pistas, no órdenes** (lo pidieron ChatGPT y Gemini): solo se usan si las reglas del juego no están seguras,
+  o para los archivos concretos de los que habla («copia los .ini a…»). Se ignoran frases de borrar, renombrar,
+  versiones antiguas, enlaces web…
+- **Por grupos:** cada archivo va a la pista que habla de su tipo y que mejor encaja con sus carpetas; si el zip ya
+  trae «Saved/Config/…» o «Documents/My Games/…», se respeta sin duplicar carpetas.
+- **Fuera del juego siempre se pide confirmación**, citando la frase de la descripción; la ventana de revisión
+  muestra en naranja «FUERA DEL JUEGO: AppData\Local\…».
+- También funciona con mods descargados por el navegador (AyakaMods, Nexus gratis): se lee su descripción.
+
+Pruebas: 173, todas pasan.
+
 ## 0.7.0 — Nexus con cuenta gratuita, como Vortex
 
 - Al instalar un mod de Nexus sin Premium, ModHub abre la **página de descarga de ese archivo** (no la ficha):

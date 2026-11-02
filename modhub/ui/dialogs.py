@@ -4,13 +4,14 @@ from __future__ import annotations
 from pathlib import Path, PurePosixPath
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QPixmap
+from PySide6.QtGui import QColor, QPixmap
 from PySide6.QtWidgets import (QAbstractButton, QButtonGroup, QCheckBox, QComboBox, QDialog, QDialogButtonBox,
                                QFrame, QGroupBox, QHBoxLayout, QLabel, QLineEdit, QRadioButton, QScrollArea,
                                QSplitter, QTextBrowser, QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget)
 
 from ..core.extractor import FileMapping, InstallPlan
 from ..core.fomod import FomodSession, Selections
+from ..core.user_dirs import describe_target
 from ..games.base import GameProfile
 from .theme import COLORS
 from .widgets import button
@@ -250,8 +251,9 @@ class PlanReviewDialog(QDialog):
         prefix = self.prefix.text().strip().replace("\\", "/").strip("/")
         if prefix and ".." in PurePosixPath(prefix).parts:
             prefix = ""
-        maps = [FileMapping(m.source, PurePosixPath(prefix) / m.target if prefix else m.target)
-                for m in self.original.mappings]
+        maps = [FileMapping(m.source, PurePosixPath(prefix) / m.target
+                            if prefix and not str(m.target).startswith("@") else m.target)
+                for m in self.original.mappings]          # los destinos en Documentos/AppData no se tocan
         p = self.original
         self.plan = InstallPlan(p.mod_dir, p.rule if not prefix else f"{p.rule}+manual", 1.0 if prefix else p.confidence,
                                 maps, p.ignored, [], p.missing_loaders, p.provides_loaders, False)
@@ -259,12 +261,20 @@ class PlanReviewDialog(QDialog):
         root_items: dict[str, QTreeWidgetItem] = {}
         for m in sorted(maps, key=lambda x: str(x.target).lower()):
             top = m.target.parts[0] if len(m.target.parts) > 1 else "(raíz del juego)"
+            if top.startswith("@"):
+                top = f"{top}/" + "/".join(m.target.parts[1:-1])
             parent = root_items.get(top)
             if parent is None:
-                parent = QTreeWidgetItem([top + "/" if top != "(raíz del juego)" else top, ""])
+                label = top + "/" if top != "(raíz del juego)" and not top.startswith("@") else top
+                if top.startswith("@"):
+                    label = "📁 FUERA DEL JUEGO: " + describe_target(top + "/x")[:-2]
+                parent = QTreeWidgetItem([label, ""])
+                if top.startswith("@"):
+                    parent.setForeground(0, QColor(COLORS["warn"]))
                 root_items[top] = parent
                 self.tree.addTopLevelItem(parent)
-            QTreeWidgetItem(parent, [str(m.target), _short(m.source, p.mod_dir)])
+            shown = describe_target(str(m.target)) if str(m.target).startswith("@") else str(m.target)
+            QTreeWidgetItem(parent, [shown, _short(m.source, p.mod_dir)])
         for item in root_items.values():
             item.setExpanded(len(root_items) <= 4)
 

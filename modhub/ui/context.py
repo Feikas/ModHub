@@ -298,8 +298,16 @@ class AppContext:
         self.events.mods_changed.emit(game_id)
         return result
 
-    async def install_archive(self, game_id: int, path: Path | str, name: str | None = None) -> InstallResult:
-        result = await self.installer.install_archive(game_id, path, name)
+    async def install_archive(self, game_id: int, path: Path | str, name: str | None = None, *,
+                              source: str | None = None, mod_id: str | None = None) -> InstallResult:
+        description = ""
+        if source and mod_id and source in self.registry:     # llegó por el navegador: se lee su descripción
+            try:
+                info = await self.registry.get(source).get_mod_details(mod_id, self.game_ref(game_id))
+                description = "\n".join(filter(None, (info.description, info.summary)))
+            except Exception as e:  # noqa: BLE001 - sin descripción se instala igual
+                log.info("Sin descripción de %s:%s: %s", source, mod_id, e)
+        result = await self.installer.install_archive(game_id, path, name, description=description)
         self.events.mods_changed.emit(game_id)
         return result
 

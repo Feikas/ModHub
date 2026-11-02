@@ -84,13 +84,16 @@ class ModInstaller:
         # En Thunderstore el nombre único es "Autor-Paquete" (igual que r2modman): evita choques entre mods homónimos.
         folder_name = info.mod_id if source == "thunderstore" else info.name
         result = await self._extract_and_register(game_id, db_id, task.dest, folder_name,
-                                                  file.version if file else "", enable=enable)
+                                                  file.version if file else "", enable=enable,
+                                                  description="\n".join(filter(None, (
+                                                      info.description, info.summary,
+                                                      str(file.extra.get("description") or "") if file else ""))))
         result.ticket = ticket
         result.dependencies = list(file.dependencies) if file else []
         return result
 
     async def install_archive(self, game_id: int, archive: Path | str, name: str | None = None, *,
-                              enable: bool = True) -> InstallResult:
+                              enable: bool = True, description: str = "") -> InstallResult:
         """Para archivos que llegan por el navegador (BROWSER_INTERCEPT) o que el usuario arrastra."""
         archive = Path(archive)
         name = name or archive.stem
@@ -101,9 +104,10 @@ class ModInstaller:
         if archive.resolve() != dest.resolve():
             shutil.copy2(archive, dest)
         self.db.execute("UPDATE mods SET archive_path=? WHERE id=?", (str(dest), db_id))
-        return await self._extract_and_register(game_id, db_id, dest, name, "", enable=enable)
+        return await self._extract_and_register(game_id, db_id, dest, name, "", enable=enable, description=description)
 
-    async def _extract_and_register(self, game_id, db_id, archive: Path, name, version, *, enable) -> InstallResult:
+    async def _extract_and_register(self, game_id, db_id, archive: Path, name, version, *, enable,
+                                    description: str = "") -> InstallResult:
         game = self.game(game_id)
         mod_dir = self.staging.mod_dir(game["slug"], game["install_path"], name, version)
         if mod_dir.exists():
@@ -114,7 +118,8 @@ class ModInstaller:
             self._set_state(db_id, "error", str(e))
             return InstallResult("failed", db_id, message=str(e))
 
-        plan = ModAnalyzer(get_profile(game["profile"])).analyze(mod_dir, name, game["install_path"])
+        plan = ModAnalyzer(get_profile(game["profile"])).analyze(mod_dir, name, game["install_path"],
+                                                                 description=description)
         self.deployer.register_plan(db_id, plan)
         if plan.needs_review:
             self._set_state(db_id, "needs_review")

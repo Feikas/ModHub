@@ -356,7 +356,8 @@ class ModAnalyzer:
         name = rel.name.lower()
         return any(fnmatch(name, pat) for pat in self.profile.ignore)
 
-    def analyze(self, mod_dir: Path | str, mod_name: str, game_root: Path | str | None = None) -> InstallPlan:
+    def analyze(self, mod_dir: Path | str, mod_name: str, game_root: Path | str | None = None, *,
+                description: str = "") -> InstallPlan:
         mod_dir = Path(mod_dir)
         all_files = sorted(PurePosixPath(p.relative_to(mod_dir).as_posix())
                            for p in mod_dir.rglob("*") if p.is_file() and not p.is_symlink())
@@ -372,10 +373,47 @@ class ModAnalyzer:
                 break
 
         warnings = list(match.notes) if match else []
+        pairs = list(match.mappings) if match else []
+        rule_name, confidence = (match.rule, match.confidence) if match else ("ninguna", 0.0)
+
+        # La descripción del mod dice dónde va (pistas, ver path_hints). Se usa cuando las reglas no están seguras,
+        # o solo para los archivos de los que habla expresamente si el destino es una carpeta del usuario.
+        if description:
+            from .path_hints import extract_hints, plan_from_hints
+            from .user_dirs import describe_target
+            hints = extract_hints(description)
+            usable = [f for f in files if not self._ignored_file(f)]
+            unsure = confidence < 0.6 or self.profile.slug == "generic"
+            hint_plan = None
+            if hints and unsure:
+                hint_plan = plan_from_hints(usable, hints)
+            elif hints:                             # perfil seguro: solo «copia los .ini a Documentos\…»
+                specific = [h for h in hints if h.external and (h.exts or h.filename)]
+                chosen = [f for f in usable if any(f.suffix.lower().lstrip(".") in h.exts or
+                                                   f.name.lower() == h.filename.lower() for h in specific)]
+                if specific and chosen and (hp := plan_from_hints(chosen, specific)):
+                    redirected = {src for src, _ in hp.mappings}
+                    pairs = [(a, b) for a, b in pairs if a not in redirected] + hp.mappings
+                    hint_plan, unsure = hp, False
+            if hint_plan is not None:
+                if unsure:
+                    pairs = hint_plan.mappings
+                    warnings = [w for w in warnings if "No se ha reconocido" not in w]
+                    rule_name = "descripción del mod"
+                    confidence = 0.75 if not hint_plan.external else 0.45
+                else:
+                    confidence = min(confidence, 0.45)       # se añadió un destino fuera del juego: confirmar
+                for h in hint_plan.used:
+                    where = describe_target(h.target)
+                    warnings.append(f"Según la descripción: «{h.quote}» → {where}")
+                if hint_plan.external:
+                    warnings.insert(0, "Este mod instala archivos FUERA de la carpeta del juego (Documentos/AppData). "
+                                       "Revisa el destino antes de confirmar.")
+
         mappings: list[FileMapping] = []
         mapped_sources = set()
         seen_targets: dict[str, PurePosixPath] = {}
-        for src, dst in (match.mappings if match else []):
+        for src, dst in pairs:
             mapped_sources.add(src)
             if self._ignored_file(src):
                 ignored.append(src)
@@ -398,7 +436,6 @@ class ModAnalyzer:
         if game_root is not None:
             missing = [l for l in self.profile.missing_loaders(Path(game_root)) if l not in provides]
 
-        return InstallPlan(mod_dir=mod_dir, rule=match.rule if match else "ninguna",
-                           confidence=match.confidence if match else 0.0, mappings=mappings,
+        return InstallPlan(mod_dir=mod_dir, rule=rule_name, confidence=confidence, mappings=mappings,
                            ignored=sorted(set(ignored)), warnings=warnings, missing_loaders=missing,
                            provides_loaders=provides, has_fomod=has_fomod)

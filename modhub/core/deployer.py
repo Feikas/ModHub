@@ -33,6 +33,7 @@ from pathlib import Path, PurePosixPath
 
 from .extractor import InstallPlan
 from .platform_paths import PathAdapter
+from .user_dirs import detect_user_dirs, split_target
 from .staging import same_volume
 
 log = logging.getLogger("modhub.deploy")
@@ -101,10 +102,34 @@ def _force_unlink(path: Path) -> None:
 
 
 class Deployer:
-    def __init__(self, db, *, allow_symlink: bool = True, allow_copy: bool = True):
+    def __init__(self, db, *, allow_symlink: bool = True, allow_copy: bool = True,
+                 user_dirs: dict[str, Path] | None = None):
         self.db = db
         self.allow_symlink = allow_symlink
         self.allow_copy = allow_copy
+        self._user_dirs = user_dirs                 # Documentos, AppData… (se detectan al usarlos)
+
+    @property
+    def user_dirs(self) -> dict[str, Path]:
+        if self._user_dirs is None:
+            self._user_dirs = detect_user_dirs()
+        return self._user_dirs
+
+    def _base(self, root: Path, rel_path: str) -> tuple[Path, str, bool]:
+        """(carpeta base, ruta dentro de ella, ¿es una carpeta del usuario?) para una ruta del plan."""
+        base, rest = split_target(rel_path)
+        if base is None:
+            return root, rel_path, False
+        if base not in self.user_dirs:
+            raise DeployError(f"Destino no permitido: {rel_path}")
+        if len(PurePosixPath(rest).parts) < 2:
+            # Nunca archivos sueltos en Documentos/AppData: siempre dentro de la carpeta de un juego/programa
+            raise DeployError(f"Destino demasiado general: {rel_path}")
+        return Path(self.user_dirs[base]), rest, True
+
+    def _abs(self, root: Path, rel_path: str) -> Path:
+        base, rest, _ = self._base(root, rel_path)
+        return base / Path(*PurePosixPath(rest).parts)
 
     # ════════════════════════════════════════════════════════════════════
     #  Planes de instalación
@@ -205,12 +230,16 @@ class Deployer:
     #  Piezas
     # ════════════════════════════════════════════════════════════════════
     def _dest(self, root: Path, rel_path: str) -> Path:
-        rel = PurePosixPath(rel_path)
-        if rel.is_absolute() or ".." in rel.parts or not rel.parts:
+        base, rest, external = self._base(root, rel_path)
+        rel = PurePosixPath(rest)
+        if rel.is_absolute() or ".." in rel.parts or not rel.parts or ":" in rest:
             raise DeployError(f"Ruta de destino no válida: {rel_path}")
-        dest = root.joinpath(*rel.parts)
-        if not dest.parent.resolve().is_relative_to(root.resolve()):
-            raise DeployError(f"La ruta saldría de la carpeta del juego: {rel_path}")
+        dest = base.joinpath(*rel.parts)
+        if not dest.parent.resolve().is_relative_to(base.resolve()):
+            where = "la carpeta del usuario permitida" if external else "la carpeta del juego"
+            raise DeployError(f"La ruta saldría de {where}: {rel_path}")
+        if external and "steam" in rel.parts[0].lower() and "userdata" in (p.lower() for p in rel.parts):
+            raise DeployError(f"No se tocan los datos de Steam: {rel_path}")
         return dest
 
     def _is_ours(self, dest: Path, row) -> bool:
@@ -228,7 +257,7 @@ class Deployer:
         """El archivo desplegado sigue siendo correcto para el estado deseado."""
         if row["mod_id"] != want.mod_id or _norm(row["source_path"]) != _norm(want.source):
             return False
-        dest, src = root / Path(*PurePosixPath(row["rel_path"]).parts), Path(want.source)
+        dest, src = self._abs(root, row["rel_path"]), Path(want.source)
         if not self._is_ours(dest, row) or not src.is_file():
             return False
         if row["link_type"] == LinkMethod.HARDLINK.value:
@@ -242,7 +271,11 @@ class Deployer:
         return True
 
     def _remove(self, game_id: int, root: Path, row, report: DeployReport) -> None:
-        dest = root / Path(*PurePosixPath(row["rel_path"]).parts)
+        try:
+            dest = self._abs(root, row["rel_path"])
+        except DeployError:
+            self.db.execute("DELETE FROM deployed_files WHERE game_id=? AND rel_key=?", (game_id, row["rel_key"]))
+            return
         if dest.exists() or dest.is_symlink():
             if self._is_ours(dest, row):
                 _force_unlink(dest)
@@ -271,8 +304,12 @@ class Deployer:
                             (game_id, key, want.rel_path, str(bpath)))
             report.backed_up += 1
 
-        self._make_dirs(game_id, root, dest.parent)
-        method = self._link(src, dest, preferred)
+        base, _, external = self._base(root, want.rel_path)
+        self._make_dirs(game_id, base, dest.parent, prefix=want.rel_path[:want.rel_path.index("/") + 1]
+                        if external else "")
+        # Fuera del juego (configuración, partidas…) siempre COPIA: el juego reescribe esos archivos y con un
+        # enlace también cambiaría el original del mod.
+        method = self._link(src, dest, LinkMethod.COPY if external else preferred)
         self.db.execute(
             """INSERT OR REPLACE INTO deployed_files (game_id, rel_key, rel_path, mod_id, source_path, link_type, file_id)
                VALUES (?,?,?,?,?,?,?)""",
@@ -282,7 +319,7 @@ class Deployer:
         report.methods[method.value] += 1
 
     def _restore(self, game_id: int, root: Path, b, report: DeployReport) -> None:
-        dest = root / Path(*PurePosixPath(b["rel_path"]).parts)
+        dest = self._abs(root, b["rel_path"])
         bpath = Path(b["backup_path"])
         if dest.exists() or dest.is_symlink():
             report.warnings.append(f"No se restaura {b['rel_path']}: ya hay otro archivo en su lugar.")
@@ -295,7 +332,7 @@ class Deployer:
             report.warnings.append(f"Se perdió la copia del original de {b['rel_path']}.")
         self.db.execute("DELETE FROM original_backups WHERE game_id=? AND rel_key=?", (game_id, b["rel_key"]))
 
-    def _make_dirs(self, game_id: int, root: Path, folder: Path) -> None:
+    def _make_dirs(self, game_id: int, root: Path, folder: Path, *, prefix: str = "") -> None:
         missing = []
         p = folder
         while p != root and not p.exists():
@@ -303,13 +340,19 @@ class Deployer:
             p = p.parent
         for d in reversed(missing):
             d.mkdir()
-            rel = d.relative_to(root).as_posix()
+            rel = prefix + d.relative_to(root).as_posix()
             self.db.execute("INSERT OR IGNORE INTO deployed_dirs VALUES (?,?,?)", (game_id, rel.lower(), rel))
 
     def _prune_dirs(self, game_id: int, root: Path) -> None:
         rows = self.db.query("SELECT * FROM deployed_dirs WHERE game_id=?", (game_id,))
         for r in sorted(rows, key=lambda r: -len(PurePosixPath(r["rel_path"]).parts)):
-            d = root / Path(*PurePosixPath(r["rel_path"]).parts)
+            try:
+                d = self._abs(root, r["rel_path"])
+            except DeployError:
+                d = None
+            if d is None:
+                self.db.execute("DELETE FROM deployed_dirs WHERE game_id=? AND rel_key=?", (game_id, r["rel_key"]))
+                continue
             if d.is_dir():
                 try:
                     next(d.iterdir())
@@ -358,7 +401,7 @@ class Deployer:
         _, root = self._game(game_id)
         issues = []
         for row in self.db.query("SELECT * FROM deployed_files WHERE game_id=?", (game_id,)):
-            dest = root / Path(*PurePosixPath(row["rel_path"]).parts)
+            dest = self._abs(root, row["rel_path"])
             if not (dest.exists() or dest.is_symlink()):
                 issues.append(f"Falta: {row['rel_path']}")
             elif not self._is_ours(dest, row):
