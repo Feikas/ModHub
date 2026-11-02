@@ -21,6 +21,7 @@ Métodos de enlace, por orden: hardlink → symlink → copia.
 """
 from __future__ import annotations
 
+import filecmp
 import logging
 import os
 import shutil
@@ -35,10 +36,6 @@ from .staging import same_volume
 
 log = logging.getLogger("modhub.deploy")
 
-try:                                   # Windows: API nativa
-    import win32file                   # type: ignore
-except ImportError:                    # otros sistemas / pywin32 no instalado
-    win32file = None
 
 
 class LinkMethod(str, Enum):
@@ -78,9 +75,12 @@ class _Want:
     source: str
 
 
-def _file_id(path: Path) -> str:
+def _file_id(path: Path, *, with_content: bool = False) -> str:
+    """Identidad del archivo: «dispositivo:inodo». Para las COPIAS se añade «:tamaño:mtime_ns», porque editar
+    un archivo copiado conserva el inodo y, sin esto, se borrarían los cambios del usuario al desactivar el mod."""
     st = os.stat(path, follow_symlinks=False)
-    return f"{st.st_dev}:{st.st_ino}"
+    base = f"{st.st_dev}:{st.st_ino}"
+    return f"{base}:{st.st_size}:{st.st_mtime_ns}" if with_content else base
 
 
 def _norm(p: str) -> str:
@@ -207,7 +207,10 @@ class Deployer:
             return dest.is_symlink() and _norm(os.readlink(dest)) == _norm(row["source_path"])
         if not dest.exists() or dest.is_symlink():
             return False
-        return _file_id(dest) == row["file_id"]
+        recorded = row["file_id"] or ""
+        if row["link_type"] == LinkMethod.COPY.value and recorded.count(":") >= 3:
+            return _file_id(dest, with_content=True) == recorded       # editado tras copiarlo -> ya no es nuestro
+        return _file_id(dest) == ":".join(recorded.split(":")[:2])
 
     def _still_valid(self, root: Path, row, want: _Want) -> bool:
         """El archivo desplegado sigue siendo correcto para el estado deseado."""
@@ -220,7 +223,10 @@ class Deployer:
             return os.path.samefile(dest, src)                 # si el mod se actualizó, el origen es otro inodo
         if row["link_type"] == LinkMethod.COPY.value:
             s, d = src.stat(), dest.stat()
-            return s.st_size == d.st_size and int(s.st_mtime) == int(d.st_mtime)
+            # Dos versiones pueden tener igual tamaño y fecha, incluso dentro del mismo segundo.
+            # shallow=False evita dar por idénticos contenidos distintos.
+            filecmp.clear_cache()
+            return s.st_size == d.st_size and filecmp.cmp(src, dest, shallow=False)
         return True
 
     def _remove(self, game_id: int, root: Path, row, report: DeployReport) -> None:
@@ -258,7 +264,8 @@ class Deployer:
         self.db.execute(
             """INSERT OR REPLACE INTO deployed_files (game_id, rel_key, rel_path, mod_id, source_path, link_type, file_id)
                VALUES (?,?,?,?,?,?,?)""",
-            (game_id, key, want.rel_path, want.mod_id, str(src), method.value, _file_id(dest)))
+            (game_id, key, want.rel_path, want.mod_id, str(src), method.value,
+             _file_id(dest, with_content=method is LinkMethod.COPY)))
         report.added += 1
         report.methods[method.value] += 1
 
@@ -327,10 +334,9 @@ class Deployer:
 
     @staticmethod
     def _hardlink(src: Path, dest: Path) -> None:
-        if win32file is not None:
-            win32file.CreateHardLink(str(dest), str(src), None)
-        else:
-            os.link(src, dest)
+        # os.link usa la API nativa de Windows y comunica los fallos como OSError,
+        # que _link puede capturar para intentar symlink o copia.
+        os.link(src, dest)
 
     # ════════════════════════════════════════════════════════════════════
     #  Comprobación

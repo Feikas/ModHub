@@ -305,6 +305,23 @@ class AppContext:
                     return await self.install(game_id, source, info.mod_id, f.file_id)
         return None
 
+    # ── instalaciones que quedaron a medias al cerrar ModHub ──────────────
+    def interrupted_installs(self) -> list[Any]:
+        """Mods que se estaban descargando cuando se cerró ModHub (su .part sigue en staging)."""
+        busy = {t.label for t in self.downloads.tasks if t.state.value not in ("done", "failed", "cancelled")}
+        rows = self.db.query("""SELECT m.*, g.name AS game_name FROM mods m JOIN games g ON g.id=m.game_id
+                                WHERE m.state='downloading' AND m.source!='local' ORDER BY m.id""")
+        return [r for r in rows if r["name"] not in busy]
+
+    async def resume_install(self, mod_row) -> InstallResult:
+        """Vuelve a pedir el archivo y sigue desde donde se quedó la descarga (mismo destino -> reanuda el .part)."""
+        return await self.install(mod_row["game_id"], mod_row["source"], mod_row["source_mod_id"],
+                                  mod_row["source_file_id"])
+
+    def discard_interrupted(self, mod_db_id: int) -> None:
+        self.db.execute("UPDATE mods SET state='error', error=? WHERE id=? AND state='downloading'",
+                        ("Descarga interrumpida al cerrar ModHub", mod_db_id))
+
     def pending_dependencies(self, game_id: int, result: InstallResult) -> list:
         """Dependencias obligatorias que faltan (ni instaladas como mod ni cubiertas por un modloader ya puesto)."""
         installed = {(r["source"], r["source_mod_id"]) for r in self.mods(game_id)}

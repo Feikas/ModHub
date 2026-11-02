@@ -61,7 +61,7 @@ class ExtractResult:
 # ════════════════════════════════════════════════════════════════════════
 def safe_member_path(name: str) -> PurePosixPath:
     """Valida el nombre de una entrada del archivo y lo devuelve como ruta relativa segura."""
-    clean = name.replace("\\", "/").strip()
+    clean = name.replace("\\", "/")
     if not clean or clean.startswith("/") or (len(clean) > 1 and clean[1] == ":"):
         raise UnsafeArchive(f"Ruta absoluta dentro del archivo: {name!r}")
     parts = [p for p in clean.split("/") if p not in ("", ".")]
@@ -69,6 +69,13 @@ def safe_member_path(name: str) -> PurePosixPath:
         raise UnsafeArchive(f"Ruta que intenta salir de la carpeta: {name!r}")
     if any(":" in p for p in parts):
         raise UnsafeArchive(f"Nombre no válido en Windows: {name!r}")
+    for part in parts:
+        stem = part.split(".", 1)[0].rstrip(" ").upper()
+        reserved = {"CON", "PRN", "AUX", "NUL", "CONIN$", "CONOUT$"}
+        reserved.update(f"{prefix}{n}" for prefix in ("COM", "LPT") for n in "123456789¹²³")
+        if (part.endswith((" ", ".")) or stem in reserved
+                or any(ord(c) < 32 or c in '<>"|?*' for c in part)):
+            raise UnsafeArchive(f"Nombre no válido en Windows: {name!r}")
     if not parts:
         raise UnsafeArchive(f"Entrada vacía: {name!r}")
     return PurePosixPath(*parts)

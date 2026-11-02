@@ -4,7 +4,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import (QCheckBox, QFileDialog, QHBoxLayout, QHeaderView, QLabel, QMessageBox,
+from PySide6.QtWidgets import (QCheckBox, QComboBox, QLineEdit, QFileDialog, QHBoxLayout, QHeaderView, QLabel, QMessageBox,
                                QTableWidget, QVBoxLayout, QWidget)
 
 from .games_view import report_text
@@ -41,6 +41,25 @@ class InstalledView(QWidget):
         lay.addWidget(page_header("Mods instalados",
                                   "Activa o desactiva mods al instante. Más prioridad = gana si dos mods tocan "
                                   "el mismo archivo.", head))
+
+        filters = QHBoxLayout()
+        self.search = QLineEdit()
+        self.search.setPlaceholderText("Filtrar por nombre, versión o fuente…")
+        self.search.setClearButtonEnabled(True)
+        self.search.setAccessibleName("Buscar en los mods instalados")
+        self.state_filter = QComboBox()
+        for label, value in (("Todos los estados", ""), ("Activos", "enabled"),
+                             ("Desactivados", "disabled"), ("Revisar", "needs_review"),
+                             ("Con errores", "error")):
+            self.state_filter.addItem(label, value)
+        self.visible_count = QLabel()
+        self.visible_count.setObjectName("Muted")
+        filters.addWidget(self.search, 1)
+        filters.addWidget(self.state_filter)
+        filters.addWidget(self.visible_count)
+        lay.addLayout(filters)
+        self.search.textChanged.connect(self._apply_filters)
+        self.state_filter.currentIndexChanged.connect(self._apply_filters)
 
         self.table = QTableWidget(0, len(self.COLS))
         self.table.setHorizontalHeaderLabels(self.COLS)
@@ -82,7 +101,10 @@ class InstalledView(QWidget):
     # ── datos ──────────────────────────────────────────────────────────
     def selected_mod_id(self) -> int | None:
         rows = self.table.selectionModel().selectedRows() if self.table.selectionModel() else []
-        return self.table.item(rows[0].row(), 2).data(Qt.ItemDataRole.UserRole) if rows else None
+        if not rows or self.table.isRowHidden(rows[0].row()):
+            return None
+        item = self.table.item(rows[0].row(), 2)
+        return item.data(Qt.ItemDataRole.UserRole) if item else None
 
     def refresh(self) -> None:
         gid = self.game.current_game_id()
@@ -93,7 +115,7 @@ class InstalledView(QWidget):
         for r, m in enumerate(mods):
             box = QCheckBox()
             box.setChecked(m["state"] == "enabled")
-            box.setEnabled(m["state"] in ("enabled", "disabled", "installed"))
+            box.setEnabled(not self._busy and m["state"] in ("enabled", "disabled", "installed"))
             box.setToolTip("Activar / desactivar (crea o quita los enlaces en el juego)")
             box.toggled.connect(lambda on, mid=m["id"]: self.toggle(mid, on))
             cell = QWidget()
@@ -107,6 +129,7 @@ class InstalledView(QWidget):
             self.table.setItem(r, 4, source_badge(m["source"]))
             label, color = STATE_LABELS.get(m["state"], (m["state"], COLORS["muted"]))
             self.table.setItem(r, 5, badge_item(label, color, m["error"] or ""))
+            self.table.item(r, 5).setData(Qt.ItemDataRole.UserRole, m["state"])
             conf = m["confidence"]
             rule = m["install_rule"] or "—"
             self.table.setItem(r, 6, text_item(f"{rule}" + (f" ({conf:.0%})" if conf is not None else ""),
@@ -120,6 +143,22 @@ class InstalledView(QWidget):
             for r in range(self.table.rowCount()):
                 if self.table.item(r, 2).data(Qt.ItemDataRole.UserRole) == keep:
                     self.table.selectRow(r)
+        self._apply_filters()
+
+    def _apply_filters(self, *_args) -> None:
+        query = self.search.text().strip().casefold()
+        state = self.state_filter.currentData()
+        visible = 0
+        for row in range(self.table.rowCount()):
+            haystack = " ".join(self.table.item(row, c).text() for c in (2, 3, 4)).casefold()
+            match = (query in haystack and (not state or
+                     self.table.item(row, 5).data(Qt.ItemDataRole.UserRole) == state))
+            self.table.setRowHidden(row, not match)
+            visible += bool(match)
+        self.visible_count.setText(f"{visible} / {self.table.rowCount()} mods")
+        self.empty.setText("No hay mods que coincidan con estos filtros." if self.table.rowCount()
+                           else "Este juego aún no tiene mods. Búscalos o instala un archivo.")
+        self.empty.setVisible(visible == 0)
         self._update_buttons()
 
     def _update_buttons(self) -> None:
@@ -139,6 +178,8 @@ class InstalledView(QWidget):
 
     # ── acciones ───────────────────────────────────────────────────────
     def toggle(self, mod_id: int, enabled: bool) -> None:
+        if self._busy:
+            return
         gid = self.game.current_game_id()
         self._run(self.ctx.run_deploy(gid, self.ctx.installer.set_enabled, mod_id, enabled),
                   "Mod activado" if enabled else "Mod desactivado")

@@ -118,6 +118,7 @@ class MainWindow(QMainWindow):
         self._status_timer.timeout.connect(self._update_status)
         self._status_timer.start(1000)
         self.go("games" if ctx.games() else "games")
+        QTimer.singleShot(1200, self._offer_resume)
 
     # ── utilidades ─────────────────────────────────────────────────────
     def notify(self, text: str, level: str = "info", actions=None) -> None:
@@ -233,6 +234,26 @@ class MainWindow(QMainWindow):
         spawn(self.ctx.run_deploy(mod["game_id"], self.ctx.installer.confirm_review, mod_id, plan),
               on_ok=lambda r: self.notify(report_text(f"«{mod['name']}» instalado", r), "ok" if r.ok else "warn"),
               on_error=lambda e: self.notify(str(e), "error"))
+
+    def _offer_resume(self) -> None:
+        """Si al cerrar ModHub quedaron descargas a medias, ofrece seguir donde se quedaron."""
+        rows = self.ctx.interrupted_installs()
+        if not rows:
+            return
+        names = ", ".join(f"«{r['name']}»" for r in rows[:3]) + (f" y {len(rows) - 3} más" if len(rows) > 3 else "")
+        self.notify(f"Quedaron descargas a medias al cerrar ModHub: {names}.", "warn",
+                    [("Continuar", lambda: self._resume_all(rows)), ("Descartar", lambda: self._discard_all(rows))])
+
+    def _resume_all(self, rows) -> None:
+        for r in rows:
+            spawn(self.ctx.resume_install(r),
+                  on_ok=lambda res, r=r: self.flow.handle_result(res, r["game_id"], r["name"]),
+                  on_error=lambda e, r=r: self.notify(f"No se pudo continuar «{r['name']}»: {e}", "error"))
+
+    def _discard_all(self, rows) -> None:
+        for r in rows:
+            self.ctx.discard_interrupted(r["id"])
+            self.ctx.events.mods_changed.emit(r["game_id"])
 
     def closeEvent(self, event) -> None:  # noqa: N802
         try:

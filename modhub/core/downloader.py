@@ -77,6 +77,7 @@ class DownloadTask:
     speed: float = 0.0                    # bytes/s (media suavizada)
     error: str | None = None
     attempts: int = 0
+    best_bytes: int = 0             # lo más lejos que ha llegado (para no reintentar sin fin)
     # internos
     _runner: asyncio.Task | None = field(default=None, repr=False)
     _intent: str | None = field(default=None, repr=False)          # "pause" | "cancel"
@@ -131,6 +132,9 @@ class DownloadManager:
     def add(self, url: str, dest: Path | str, *, size: int | None = None, hashes: dict[str, str] | None = None,
             headers: dict[str, str] | None = None, label: str = "") -> DownloadTask:
         dest = Path(dest)
+        if any(t.dest.resolve() == dest.resolve() and t.state not in TERMINAL
+               for t in self._tasks.values()):
+            raise DownloadError("Ya hay una descarga pendiente para este archivo. Reanúdala o cancélala primero.")
         dest.parent.mkdir(parents=True, exist_ok=True)
         clean_hashes = {k.lower(): v.lower() for k, v in (hashes or {}).items()
                         if v and k.lower() in SUPPORTED_HASHES}
@@ -229,6 +233,14 @@ class DownloadManager:
                 self._mark_cancelled(task)
             else:
                 raise
+        except Exception as e:
+            # Un fallo inesperado tampoco debe dejar wait() y la interfaz bloqueados.
+            log.exception("Error inesperado en la descarga %s", task.label)
+            task.state = DownloadState.FAILED
+            task.error = f"No se pudo completar la descarga: {e}"
+            task.speed = 0.0
+            task._finished.set()
+            self._emit(task)
 
     async def _run(self, task: DownloadTask) -> None:
         task.state = DownloadState.RUNNING
@@ -240,7 +252,13 @@ class DownloadManager:
                 task.state = DownloadState.DONE
                 break
             except (httpx.TransportError, httpx.TimeoutException, _Retryable) as e:
-                task.attempts += 1
+                now_size = task.part_path.stat().st_size if task.part_path.exists() else 0
+                # Si se llegó más lejos que nunca, el cupo de reintentos vuelve a empezar: una conexión que se
+                # corta a ratos acaba la descarga; una que nunca avanza se rinde tras max_retries.
+                if now_size > task.best_bytes:
+                    task.best_bytes, task.attempts = now_size, 1
+                else:
+                    task.attempts += 1
                 if task.attempts > self.max_retries:
                     task.state, task.error = DownloadState.FAILED, f"Sin conexión tras varios intentos: {e}"
                     break
@@ -267,6 +285,8 @@ class DownloadManager:
             task.done_bytes = task.total_bytes = offset         # ya estaba entero
             return
         headers = dict(task.headers)
+        # Range y tamaños se refieren a bytes del archivo, sin compresión HTTP.
+        headers["Accept-Encoding"] = "identity"
         if offset:
             headers["Range"] = f"bytes={offset}-"
 
@@ -278,6 +298,12 @@ class DownloadManager:
                 raise _Retryable(f"HTTP {resp.status_code}")
             if resp.status_code >= 400:
                 raise DownloadError(f"El servidor respondió HTTP {resp.status_code} para {task.label}.")
+            if resp.status_code == 206:
+                match = re.fullmatch(r"bytes (\d+)-(\d+)/(\d+|\*)",
+                                     resp.headers.get("Content-Range", "").strip())
+                if (not match or int(match[1]) != offset or int(match[2]) < offset
+                        or (match[3] != "*" and int(match[2]) >= int(match[3]))):
+                    raise DownloadError("El servidor devolvió un rango incorrecto; no se ha añadido al archivo.")
             if offset and resp.status_code != 206:             # no admite Range
                 offset = 0
             task.total_bytes = _parse_total(resp, offset) or task.expected_size
@@ -297,11 +323,12 @@ class DownloadManager:
                     if now - last_emit >= self.progress_interval:
                         last_emit = now
                         self._emit(task)
-        task.attempts = 0                                       # el tramo terminó bien
 
     async def _finish(self, task: DownloadTask) -> None:
         part = task.part_path
         size = part.stat().st_size
+        if task.total_bytes is not None and size != task.total_bytes:
+            raise _Retryable(f"Descarga incompleta: {size} de {task.total_bytes} bytes")
         if task.expected_size is not None and size != task.expected_size:
             part.unlink(missing_ok=True)
             raise IntegrityError(f"Tamaño incorrecto en {task.label}: {size} bytes en vez de {task.expected_size}.")

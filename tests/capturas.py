@@ -5,6 +5,7 @@
 import asyncio
 import sys
 import tempfile
+import os
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -20,6 +21,13 @@ from ui_demo import build_demo  # noqa: E402
 out = Path(sys.argv[1] if len(sys.argv) > 1 else "capturas")
 out.mkdir(parents=True, exist_ok=True)
 app = QApplication([])
+# El backend offscreen puede no cargar las fuentes de Windows automáticamente.
+if sys.platform == "win32":
+    from PySide6.QtGui import QFontDatabase
+    for filename in ("segoeui.ttf", "segoeuib.ttf", "seguiemj.ttf"):
+        font = Path(os.environ.get("WINDIR", "C:/Windows")) / "Fonts" / filename
+        if font.is_file():
+            QFontDatabase.addApplicationFont(str(font))
 app.setStyle("Fusion")
 app.setStyleSheet(STYLESHEET)
 loop = qasync.QEventLoop(app)
